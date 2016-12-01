@@ -8,4 +8,26 @@ public class Message {
     private String description;
     private Optional<Permission> permission;
 
+    public Message(Format format, String content, Permission permission) {
+        this.format = format;
+        this.description = content;
+        this.permission = Optional.ofNullable(permission);
+    }
+
+    public static Message plain(String content) {
+        return new Message(Format.PLAIN, content, Permission.STUDENT);
+    }
+
+    public static Message code(String content) {
+        return new Message(Format.CODE, content, Permission.STUDENT);
+    }
+
+    public static Message staff(String content) {
+        return new Message(Format.PLAIN, content, Permission.STAFF);
+    }
+
+    public static Message internalError(String content) {
+        return new Message(Format.CODE, content, Permission.STAFF);
+    }
+
 }

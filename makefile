@@ -14,9 +14,9 @@ build/%.class: src/%.java
 #                                  Packaging                                   #
 # ============================================================================ #
 
-dist/judge.jar: build/dodona/feedback/Feedback.class $(shell find build -type f)
+dist/judge.jar: build/dodona/junit/JUnitJSON.class $(shell find build -type f)
 	mkdir -p $(dir $@)
-	jar -cfe "$@" dodona.feedback.Feedback -C build/ .
+	jar -cf "$@" -C build/ .
 
 # ============================================================================ #
 #                                   Phonies                                    #
@@ -28,9 +28,12 @@ space +=
 $(space) :=
 $(space) +=
 
+.PHONY: jar
+jar: dist/judge.jar
+
 .PHONY: run
-run: dist/judge.jar lib/gson-2.8.1-SNAPSHOT.jar lib/junit-4.12.jar lib/hamcrest-core-1.3.jar
-	$(JAVA) -cp $(subst $ ,:,$^) -jar $<
+run: dist/judge.jar lib/gson-2.8.1-SNAPSHOT.jar lib/junit-4.13.jar lib/hamcrest-core-1.3.jar
+	$(JAVA) -cp .:$(subst $ ,:,$^) dodona.junit.JUnitJSON
 
 #.PHONY: test
 #test: dist/judge.jar

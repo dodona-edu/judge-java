@@ -1,0 +1,174 @@
+package dodona.junit;
+
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
+import org.junit.runner.Description;
+import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunListener;
+import org.junit.runner.Result;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import dodona.feedback.Feedback;
+import dodona.feedback.Tab;
+import dodona.feedback.Message;
+import dodona.feedback.Context;
+import dodona.feedback.Testcase;
+
+public class JSONListener extends RunListener {
+
+    private final PrintStream writer;
+    private final Feedback feedback;
+
+    /** Stores the current tab, if any. */
+    private int depth;
+    private Tab currentTab;
+
+    public JSONListener() {
+        this(System.err);
+    }
+
+    public JSONListener(PrintStream writer) {
+        this.writer = writer;
+        this.feedback = new Feedback();
+        this.depth = 0;
+        this.currentTab = null;
+    }
+
+    /**
+     * Called before any tests have been run. This may be called on an
+     * arbitrary thread.
+     *
+     * @param description describes the tests to be run
+     */
+    public void testRunStarted(Description description) throws Exception {
+    }
+
+    /**
+     * Called when all tests have finished. This may be called on an
+     * arbitrary thread.
+     *
+     * @param result the summary of the test run, including all the tests that failed
+     */
+    public void testRunFinished(Result result) throws Exception {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        writer.print(gson.toJson(feedback));
+    }
+
+    /**
+     * Called when a test suite is about to be started. If this method is
+     * called for a given {@link Description}, then {@link #testSuiteFinished(Description)}
+     * will also be called for the same {@code Description}.
+     *
+     * <p>Note that not all runners will call this method, so runners should
+     * be prepared to handle {@link #testStarted(Description)} calls for tests
+     * where there was no cooresponding {@code testSuiteStarted()} call for
+     * the parent {@code Description}.
+     *
+     * @param description the description of the test suite that is about to be run
+     *                    (generally a class name)
+     * @since 4.13
+     */
+    public void testSuiteStarted(Description description) throws Exception {
+        if(++depth != 2) return;
+        currentTab = new Tab();
+
+        TabTitle tabAnnotation = description.getAnnotation(TabTitle.class);
+        String title = tabAnnotation == null ? null : tabAnnotation.title();
+        currentTab.setTitle(title);
+    }
+
+    /**
+     * Called when a test suite has finished, whether the test suite succeeds or fails.
+     * This method will not be called for a given {@link Description} unless
+     * {@link #testSuiteStarted(Description)} was called for the same @code Description}.
+     *
+     * @param description the description of the test suite that just ran
+     * @since 4.13
+     */
+    public void testSuiteFinished(Description description) throws Exception {
+        if(--depth != 2) return;
+        if(currentTab != null) {
+            feedback.addChild(currentTab);
+            currentTab = null;
+        }
+    }
+
+    /**
+     * Called when an atomic test is about to be started.
+     *
+     * @param description the description of the test that is about to be run
+     * (generally a class and method name)
+     */
+    public void testStarted(Description description) throws Exception {
+    }
+
+    /**
+     * Called when an atomic test has finished, whether the test succeeds or fails.
+     *
+     * @param description the description of the test that just ran
+     */
+    public void testFinished(Description description) throws Exception {
+    }
+
+    /**
+     * Called when an atomic test fails, or when a listener throws an exception.
+     *
+     * <p>In the case of a failure of an atomic test, this method will be called
+     * with the same {@code Description} passed to
+     * {@link #testStarted(Description)}, from the same thread that called
+     * {@link #testStarted(Description)}.
+     *
+     * <p>In the case of a listener throwing an exception, this will be called with
+     * a {@code Description} of {@link Description#TEST_MECHANISM}, and may be called
+     * on an arbitrary thread.
+     *
+     * @param failure describes the test that failed and the exception that was thrown
+     */
+    public void testFailure(Failure failure) throws Exception {
+        if(currentTab == null) {
+            feedback.addMessage(Message.internalError(
+                "Incorrect wrapping of all testclasses in a single testsuite."
+            ));
+            return;
+        }
+
+        Context context = new Context();
+        currentTab.addChild(context);
+
+        Testcase testcase = new Testcase();
+        testcase.setDescription(Message.code(failure.getTestHeader()));
+        testcase.addMessage(Message.code(failure.getException().getMessage()));
+        context.addChild(testcase);
+    }
+
+    /**
+     * Called when an atomic test flags that it assumes a condition that is
+     * false
+     *
+     * @param failure describes the test that failed and the
+     * {@link org.junit.AssumptionViolatedException} that was thrown
+     */
+    public void testAssumptionFailure(Failure failure) {
+        StringWriter stackCollector = new StringWriter();
+        stackCollector.append("testAssumptionFailure in " +
+                              failure.getTestHeader() + ": " +
+                              failure.getException().getMessage() + "\n");
+        failure.getException().printStackTrace(new PrintWriter(stackCollector));
+
+        feedback.addMessage(Message.internalError(stackCollector.toString()));
+    }
+
+    /**
+     * Called when a test will not be run, generally because a test method is annotated
+     * with {@link org.junit.Ignore}.
+     *
+     * @param description describes the test that will not be run
+     */
+    public void testIgnored(Description description) throws Exception {
+    }
+
+}
