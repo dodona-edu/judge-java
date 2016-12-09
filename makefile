@@ -32,7 +32,7 @@ $(space) +=
 jar: dist/judge.jar
 
 .PHONY: run
-run: dist/judge.jar lib/gson-2.8.1-SNAPSHOT.jar lib/junit-4.13.jar lib/hamcrest-core-1.3.jar
+run: dist/judge.jar lib/gson-2.8.1.jar lib/junit-4.13.jar lib/hamcrest-core-1.3.jar
 	$(JAVA) -cp .:$(subst $ ,:,$^) dodona.junit.JUnitJSON
 
 #.PHONY: test
