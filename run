@@ -38,10 +38,6 @@ find . -name '*.java' \
 # Create the Input.java class, containing the submitted code
 cat "$(jshon -e 'source' -u < "$config")" > "$filename"
 
-# Compiling the tests
-find "$resources" -name '*.java' \
-    | xargs javac -cp ".:${resources}:${libs// /:}:judge.jar" -d . -sourcepath "$resources"
-
 # Compiling the user code
 if ! javac -Xlint:all "$filename" > "$compilation" 2>&1; then
     jshon -Q -n object                                    \
@@ -58,6 +54,10 @@ if ! javac -Xlint:all "$filename" > "$compilation" 2>&1; then
         -i 0 -i 'groups'
     exit 0
 fi
+
+# Compiling the tests
+find "$resources" -name '*.java' \
+    | xargs javac -cp ".:${resources}:${libs// /:}:judge.jar" -d . -sourcepath "$resources"
 
 # Running the tests
 timeout "$time_limit" java -cp ".:${libs// /:}:judge.jar" dodona.junit.JUnitJSON
