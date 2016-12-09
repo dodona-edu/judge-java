@@ -1,0 +1,64 @@
+#!/bin/bash
+
+set -o pipefail -e
+
+# Temp files
+config="$(mktemp)"      # configuration
+result="$(mktemp)"      # result json
+compilation="$(mktemp)" # output of compilation
+execution="$(mktemp)"   # output of execution
+mkdir "/tmp/build"  # compilation directory
+
+trap "rm -rf '$config' '$result' '$compilation' '$execution' '/tmp/build'" EXIT
+
+# Saving the configuration from stdin
+cat > "$config"
+
+# Directories containing the test files and the judge repository
+resources="$(jshon -e 'resources' -u < "$config")"
+judge="$(jshon -e 'judge' -u < "$config")"
+workdir="$(jshon -e 'workdir' -u < "$config")"
+filename="$(jshon -e 'filename' -u < "$config")"
+
+# The length of the timeout
+time_limit="$(jshon -e 'time_limit' -u < "$config")"
+time_limit="$(( time_limit - 10 ))"
+
+# Compiling judge into "build" and getting a jar in the workdir
+find "$judge/src" -name '*.java' \
+    | xargs javac -classpath "$judge/lib/*:/tmp/build" -d /tmp/build -sourcepath "$judge/src"
+jar -cf "judge.jar" -C /tmp/build .
+libs="$(find "$judge/lib" -name '*.jar' | xargs echo)"
+cp -t . $libs
+
+# Compiling the workdir given code
+find . -name '*.java' \
+    | xargs javac -cp ".:${libs// /:}" -d . -sourcepath .
+
+# Create the Input.java class, containing the submitted code
+cat "$(jshon -e 'source' -u < "$config")" > "$filename"
+
+# Compiling the tests
+find "$resources" -name '*.java' \
+    | xargs javac -cp ".:${resources}:${libs// /:}:judge.jar" -d . -sourcepath "$resources"
+
+# Compiling the user code
+if ! javac -Xlint:all "$filename" > "$compilation" 2>&1; then
+    jshon -Q -n object                                    \
+        -n false -i 'accepted'                            \
+        -s 'Compilatie mislukt' -i 'description'          \
+        -s 'compilation error' -i 'status'                \
+        -n array -n object                                \
+            -s "Compilatie" -i 'description'              \
+            -n false -i 'accepted'                        \
+            -n array -n object                            \
+                -s 'code' -i 'format'                     \
+                -s "$(cat $compilation)" -i 'description' \
+            -i 0 -i 'messages'                            \
+        -i 0 -i 'groups'
+    exit 0
+fi
+
+# Running the tests
+timeout "$time_limit" java -cp ".:${libs// /:}:judge.jar" dodona.junit.JUnitJSON
+
