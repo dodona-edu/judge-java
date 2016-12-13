@@ -28,7 +28,7 @@ public class JSONListener extends RunListener {
     private Tab currentTab;
 
     public JSONListener() {
-        this(System.err);
+        this(System.out);
     }
 
     public JSONListener(PrintStream writer) {
