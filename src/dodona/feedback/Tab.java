@@ -3,9 +3,10 @@ package dodona.feedback;
 import java.util.List;
 import java.util.Optional;
 
-public class Tab extends DescribedGroup<Context> {
+public class Tab extends Group<Context> {
 
     private Optional<Integer> badgeCount;
+    private Optional<String> description;
 
     public Tab() {
         badgeCount = Optional.empty();
@@ -13,7 +14,7 @@ public class Tab extends DescribedGroup<Context> {
 
     /* Description is Title of the tab (default Test) */
     public void setTitle(String title) {
-        setDescription(Message.plain(title));
+        this.description = Optional.ofNullable(title);
     }
 
     public void setBadgeCount(int badgeCount) {
