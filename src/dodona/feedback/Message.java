@@ -6,12 +6,12 @@ public class Message {
 
     private Format format;
     private String description;
-    private Optional<Permission> permission;
+    private Permission permission;
 
     public Message(Format format, String content, Permission permission) {
         this.format = format;
         this.description = content;
-        this.permission = Optional.ofNullable(permission);
+        this.permission = null;
     }
 
     public static Message plain(String content) {

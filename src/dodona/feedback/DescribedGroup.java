@@ -4,10 +4,10 @@ import java.util.Optional;
 
 public class DescribedGroup<T> extends Group<T> {
 
-    private Optional<Message> description = Optional.empty();
+    private Message description = null;
 
     public void setDescription(Message description) {
-        this.description = Optional.ofNullable(description);
+        this.description = description;
     }
 
 }

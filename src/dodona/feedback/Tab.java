@@ -5,24 +5,24 @@ import java.util.Optional;
 
 public class Tab extends Group<Context> {
 
-    private Optional<Integer> badgeCount;
-    private Optional<String> description;
+    private int badgeCount;
+    private String description;
 
     public Tab() {
-        badgeCount = Optional.empty();
+        badgeCount = 0;
     }
 
     /* Description is Title of the tab (default Test) */
     public void setTitle(String title) {
-        this.description = Optional.ofNullable(title);
+        this.description = title;
     }
 
     public void setBadgeCount(int badgeCount) {
-        this.badgeCount = Optional.of(badgeCount);
+        this.badgeCount = badgeCount;
     }
 
     private void incrementBadgeCount() {
-        this.badgeCount = Optional.of(badgeCount.orElse(0) + 1);
+        this.badgeCount += 1;
     }
 
 }

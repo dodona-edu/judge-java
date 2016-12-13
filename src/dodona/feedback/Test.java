@@ -5,7 +5,7 @@ import java.util.Optional;
 
 public class Test {
 
-    private Optional<Message> description;
+    private Message description;
     private boolean accepted;
     private String generated;
     private String expected; /* ignored (assumed equal to generated) if accepted */
