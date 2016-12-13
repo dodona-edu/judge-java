@@ -17,6 +17,7 @@ import dodona.feedback.Tab;
 import dodona.feedback.Message;
 import dodona.feedback.Context;
 import dodona.feedback.Testcase;
+import dodona.feedback.Status;
 
 public class JSONListener extends RunListener {
 
@@ -143,6 +144,9 @@ public class JSONListener extends RunListener {
         testcase.setDescription(Message.code(failure.getTestHeader()));
         testcase.addMessage(Message.code(failure.getException().getMessage()));
         context.addChild(testcase);
+
+        feedback.setStatus(Status.WRONG);
+        feedback.setAccepted(false);
     }
 
     /**
