@@ -20,4 +20,8 @@ public class Group<T> {
         this.groups.add(child);
     }
 
+    public void prependChild(T child) {
+        this.groups.add(0, child);
+    }
+
 }

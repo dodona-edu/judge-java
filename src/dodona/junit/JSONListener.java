@@ -21,18 +21,20 @@ public class JSONListener extends RunListener {
 
     private final PrintStream writer;
     private final Feedback feedback;
+    private final TestCounter counter;
 
     /** Stores the current tab, if any. */
     private int depth;
     private Tab currentTab;
 
-    public JSONListener() {
-        this(System.out);
+    public JSONListener(TestCounter counter) {
+        this(System.out, counter);
     }
 
-    public JSONListener(PrintStream writer) {
+    public JSONListener(PrintStream writer, TestCounter counter) {
         this.writer = writer;
         this.feedback = new Feedback();
+        this.counter = counter;
         this.depth = 0;
         this.currentTab = null;
     }
@@ -72,11 +74,11 @@ public class JSONListener extends RunListener {
      * @since 4.13
      */
     public void testSuiteStarted(Description description) throws Exception {
-        if(++depth != 2) return;
+        if(depth++ != 2) return;
         currentTab = new Tab();
 
         TabTitle tabAnnotation = description.getAnnotation(TabTitle.class);
-        String title = tabAnnotation == null ? null : tabAnnotation.title();
+        String title = tabAnnotation == null ? null : tabAnnotation.value();
         currentTab.setTitle(title);
     }
 
@@ -91,6 +93,12 @@ public class JSONListener extends RunListener {
     public void testSuiteFinished(Description description) throws Exception {
         if(--depth != 2) return;
         if(currentTab != null) {
+            if(counter.getLastFailed() != null && counter.getLastFailed() < counter.getLastTested()) {
+                Context summary = new Context();
+                summary.setAccepted(true);
+                summary.setDescription(Message.plain(Integer.toString(counter.getLastTested() - counter.getLastFailed()) + " succesful tests not shown."));
+                currentTab.prependChild(summary);
+            }
             feedback.addChild(currentTab);
             currentTab = null;
         }
@@ -137,6 +145,7 @@ public class JSONListener extends RunListener {
 
         Context context = new Context();
         currentTab.addChild(context);
+        currentTab.incrementBadgeCount();
 
         Testcase testcase = new Testcase();
         testcase.setDescription(Message.code(failure.getTestHeader()));
