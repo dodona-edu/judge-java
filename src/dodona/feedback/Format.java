@@ -7,8 +7,4 @@ public enum Format {
     CODE,       /* Preserves whitespace and rendered in monospace */
     PYTHON,     /* CODE, with python highlighting */
     JAVASCRIPT; /* CODE, with javascript highlighting */
-
-    public String toString() {
-        return super.toString().toLowerCase();
-    }
 }

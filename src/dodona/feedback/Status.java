@@ -6,8 +6,4 @@ public enum Status {
     TIME_LIMIT_EXCEEDED,
     RUNTIME_ERROR,
     MEMORY_LIMIT_EXCEEDED;
-
-    public String toString() {
-        return super.toString().toLowerCase().replace('_', ' ');
-    }
 }

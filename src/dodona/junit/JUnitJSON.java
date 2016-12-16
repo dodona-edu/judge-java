@@ -7,10 +7,9 @@ import org.junit.runner.Result;
 import org.junit.runner.Computer;
 import org.junit.runner.notification.RunListener;
 
-import com.google.gson.Gson;
-
 import dodona.feedback.Feedback;
 import dodona.feedback.Message;
+import dodona.json.Json;
 
 public class JUnitJSON {
 
@@ -19,10 +18,10 @@ public class JUnitJSON {
         try {
             testSuite = Class.forName("TestSuite", true, currentThread().getContextClassLoader());
         } catch(ClassNotFoundException e) {
-            Gson gson = new Gson();
+            Json json = new Json();
             Feedback feedback = new Feedback();
             feedback.addMessage(Message.internalError("TestSuite class not found."));
-            System.out.println(gson.toJson(feedback));
+            System.out.println(json.asString(feedback));
             System.exit(1);
         }
 

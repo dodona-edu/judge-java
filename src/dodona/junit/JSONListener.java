@@ -9,9 +9,7 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.Result;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
+import dodona.json.Json;
 import dodona.feedback.Feedback;
 import dodona.feedback.Tab;
 import dodona.feedback.Message;
@@ -55,8 +53,8 @@ public class JSONListener extends RunListener {
      * @param result the summary of the test run, including all the tests that failed
      */
     public void testRunFinished(Result result) throws Exception {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        writer.print(gson.toJson(feedback));
+        Json json = new Json();
+        writer.print(json.asString(feedback));
     }
 
     /**
