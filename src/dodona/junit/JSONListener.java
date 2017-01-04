@@ -161,9 +161,12 @@ public class JSONListener extends RunListener {
                 testcase.addMessage(((AnnotatedThrowable) thrown).getFeedback());
             } else if(!(thrown instanceof AssertionError)) {
                 feedback.worseStatus(Status.RUNTIME_ERROR);
-                StringWriter stacktrace = new StringWriter();
-                thrown.printStackTrace(new PrintWriter(stacktrace));
-                testcase.addMessage(Message.code(stacktrace.toString()));
+                StackTraceElement[] stacktrace = thrown.getStackTrace();
+                for(int i = 0; i < stacktrace.length; i++) {
+                    // student code in default package
+                    if(stacktrace[i].getClassName().indexOf('.') > 0) break;
+                    testcase.addMessage(Message.code("at " + stacktrace[i].toString()));
+                }
             }
             thrown = thrown.getCause();
         }
