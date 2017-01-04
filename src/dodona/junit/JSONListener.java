@@ -29,6 +29,7 @@ public class JSONListener extends RunListener {
 
     public JSONListener(TestCounter counter) {
         this(System.out, counter);
+        System.setOut(new PrintStream(new IllegalOutputStream()));
     }
 
     public JSONListener(PrintStream writer, TestCounter counter) {
@@ -151,6 +152,18 @@ public class JSONListener extends RunListener {
         testcase.setDescription(Message.code(failure.getTestHeader()));
         testcase.addMessage(Message.code(failure.getException().getMessage()));
         context.addChild(testcase);
+
+        // TODO if throwable is an annotatedthrowable, add it's messages
+        // Also use this (Messenger rule) in the tests.
+        Throwable thrown = failure.getException();
+        while(thrown != null) {
+            if(thrown instanceof AnnotatedThrowable) {
+                for(Message m : ((AnnotatedThrowable) thrown).getMessages()) {
+                    testcase.addMessage(m);
+                }
+            }
+            thrown = thrown.getCause();
+        }
 
         feedback.setStatus(Status.WRONG);
         feedback.setAccepted(false);
