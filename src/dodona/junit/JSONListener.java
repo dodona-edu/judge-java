@@ -161,6 +161,9 @@ public class JSONListener extends RunListener {
                 testcase.addMessage(((AnnotatedThrowable) thrown).getFeedback());
             } else if(!(thrown instanceof AssertionError)) {
                 feedback.worseStatus(Status.RUNTIME_ERROR);
+                StringWriter stacktrace = new StringWriter();
+                thrown.printStackTrace(new PrintWriter(stacktrace));
+                testcase.addMessage(Message.code(stacktrace.toString()));
             }
             thrown = thrown.getCause();
         }
