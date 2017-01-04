@@ -22,11 +22,10 @@ public class MessageWriter extends PrintWriter implements TestRule {
     }
 
     public MessageWriter(Permission permission, Format format) {
-        super((PrintWriter) null);
-        this.writer = new StringWriter();
+        super(new StringWriter());
+        this.writer = (StringWriter) out;
         this.permission = permission;
         this.format = format;
-        super.out = this.writer;
     }
 
     public Statement apply(final Statement base, Description description) {
