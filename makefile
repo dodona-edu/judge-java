@@ -14,7 +14,10 @@ build/%.class: src/%.java
 #                                  Packaging                                   #
 # ============================================================================ #
 
-dist/judge.jar: build/dodona/junit/JUnitJSON.class $(shell find build -type f)
+dist/judge.jar: build/dodona/junit/JUnitJSON.class \
+				build/dodona/junit/Messenger.class \
+				build/dodona/junit/TabTitle.class \
+				$(shell find build -type f)
 	mkdir -p $(dir $@)
 	jar -cf "$@" -C build/ .
 

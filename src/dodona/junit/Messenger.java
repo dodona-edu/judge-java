@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.junit.rules.TestRule;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
 
 import dodona.feedback.Message;
 import dodona.feedback.Permission;
