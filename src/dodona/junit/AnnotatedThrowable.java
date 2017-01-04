@@ -7,15 +7,15 @@ import dodona.feedback.Message;
 public class AnnotatedThrowable extends Throwable {
     private static final long serialVersionUID = 1L;
 
-    private List<Message> messages;
+    private Message message;
 
-    public AnnotatedThrowable(Throwable cause, List<Message> messages) {
+    public AnnotatedThrowable(Throwable cause, Message message) {
         super(cause);
-        this.messages = messages;
+        this.message = message;
     }
 
-    public List<Message> getMessages() {
-        return messages;
+    public Message getFeedback() {
+        return message;
     }
 
 }

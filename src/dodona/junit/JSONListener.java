@@ -158,9 +158,7 @@ public class JSONListener extends RunListener {
         Throwable thrown = failure.getException();
         while(thrown != null) {
             if(thrown instanceof AnnotatedThrowable) {
-                for(Message m : ((AnnotatedThrowable) thrown).getMessages()) {
-                    testcase.addMessage(m);
-                }
+                testcase.addMessage(((AnnotatedThrowable) thrown).getFeedback());
             }
             thrown = thrown.getCause();
         }

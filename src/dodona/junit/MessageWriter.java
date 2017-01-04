@@ -1,7 +1,7 @@
 package dodona.junit;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -11,18 +11,22 @@ import dodona.feedback.Message;
 import dodona.feedback.Permission;
 import dodona.feedback.Format;
 
-public class Messenger implements TestRule {
+public class MessageWriter extends PrintWriter implements TestRule {
 
-    private List<Message> messages;
     private Permission permission;
+    private Format format;
+    private StringWriter writer;
 
-    public Messenger() {
-        this(Permission.STUDENT);
+    public MessageWriter() {
+        this(Permission.STUDENT, Format.CODE);
     }
 
-    public Messenger(Permission permission) {
+    public MessageWriter(Permission permission, Format format) {
+        super((PrintWriter) null);
+        this.writer = new StringWriter();
         this.permission = permission;
-        this.messages = new ArrayList<>();
+        this.format = format;
+        super.out = this.writer;
     }
 
     public Statement apply(final Statement base, Description description) {
@@ -32,18 +36,10 @@ public class Messenger implements TestRule {
                 try {
                     base.evaluate();
                 } catch (Throwable e) {
-                    throw new AnnotatedThrowable(e, messages);
+                    throw new AnnotatedThrowable(e, new Message(format, writer.toString(), permission));
                 }
             }
         };
-    }
-
-    public void send(Message message) {
-        messages.add(message);
-    }
-
-    public void send(String message) {
-        messages.add(new Message(Format.CODE, message, permission));
     }
 
 }
