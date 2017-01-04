@@ -14,4 +14,10 @@ public class Feedback extends Group<Tab> {
         this.accepted = accepted;
     }
 
+    public void worseStatus(Status status) {
+        if(status.ordinal() > this.status.ordinal()) {
+            this.status = status;
+        }
+    }
+
 }

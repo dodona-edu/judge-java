@@ -145,26 +145,25 @@ public class JSONListener extends RunListener {
         }
 
         Context context = new Context();
+        context.setDescription(Message.code(failure.getTestHeader()));
         currentTab.addChild(context);
         currentTab.incrementBadgeCount();
 
         Testcase testcase = new Testcase();
-        testcase.setDescription(Message.code(failure.getTestHeader()));
-        testcase.addMessage(Message.code(failure.getException().getMessage()));
+        testcase.setDescription(Message.code(failure.getException().getMessage()));
         context.addChild(testcase);
 
-        // TODO if throwable is an annotatedthrowable, add it's messages
-        // Also use this (Messenger rule) in the tests.
+        feedback.setAccepted(false);
+        feedback.worseStatus(Status.WRONG);
         Throwable thrown = failure.getException();
         while(thrown != null) {
             if(thrown instanceof AnnotatedThrowable) {
                 testcase.addMessage(((AnnotatedThrowable) thrown).getFeedback());
+            } else if(!(thrown instanceof AssertionError)) {
+                feedback.worseStatus(Status.RUNTIME_ERROR);
             }
             thrown = thrown.getCause();
         }
-
-        feedback.setStatus(Status.WRONG);
-        feedback.setAccepted(false);
     }
 
     /**
