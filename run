@@ -33,7 +33,7 @@ cp -t . $libs
 
 # Compiling the workdir given code
 find . -name '*.java' \
-    | xargs javac -cp ".:${libs// /:}" -d . -sourcepath .
+    | xargs --no-run-if-empty javac -cp ".:${libs// /:}" -d . -sourcepath .
 
 # Create the Input.java class, containing the submitted code
 cat "$(jshon -e 'source' -u < "$config")" > "$filename"
