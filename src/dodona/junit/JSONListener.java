@@ -150,7 +150,7 @@ public class JSONListener extends RunListener {
         currentTab.incrementBadgeCount();
 
         Testcase testcase = new Testcase();
-        testcase.setDescription(Message.code(failure.getException().getMessage()));
+        testcase.setDescription(Message.code(failure.getException().toString()));
         context.addChild(testcase);
 
         feedback.setAccepted(false);
