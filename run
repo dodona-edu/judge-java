@@ -28,7 +28,7 @@ time_limit="$(( time_limit - 10 ))"
 find "$judge/src" -name '*.java' \
     | xargs javac -classpath "$judge/lib/*:/tmp/build" -d /tmp/build -sourcepath "$judge/src"
 jar -cf "judge.jar" -C /tmp/build .
-libs="$(find "$judge/lib" -name '*.jar' | xargs echo)"
+libs="$(find "$judge/lib" "$resources" -name '*.jar' | xargs echo)"
 cp -t . $libs
 
 # Compiling the workdir given code
