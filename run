@@ -38,8 +38,8 @@ find . -name '*.java' \
 # Create the Input.java class, containing the submitted code
 cat "$(jshon -e 'source' -u < "$config")" > "$filename"
 
-# Compiling the user code
-if ! javac -Xlint:all "$filename" > "$compilation" 2>&1; then
+# Compilation json
+compilation_error() {
     jshon -Q -n object                                    \
         -n false -i 'accepted'                            \
         -s 'Compilatie mislukt' -i 'description'          \
@@ -49,15 +49,21 @@ if ! javac -Xlint:all "$filename" > "$compilation" 2>&1; then
             -n false -i 'accepted'                        \
             -n array -n object                            \
                 -s 'code' -i 'format'                     \
-                -s "$(cat $compilation)" -i 'description' \
+                -s "$(cat $1)" -i 'description'           \
             -i 0 -i 'messages'                            \
         -i 0 -i 'groups'
     exit 0
+}
+
+# Compiling the user code
+if ! javac -Xlint:all "$filename" > "$compilation" 2>&1; then
+    compilation_error "$compilation"
 fi
 
 # Compiling the tests
-find "$resources" -name '*.java' \
-    | xargs javac -cp ".:${resources}:${libs// /:}:judge.jar" -d . -sourcepath "$resources"
+if ! find "$resources" -name '*.java' | xargs javac -cp ".:${resources}:${libs// /:}:judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
+    compilation_error "$compilation"
+fi
 
 # Running the tests
 timeout "$time_limit" java -cp ".:${libs// /:}:judge.jar" dodona.junit.JUnitJSON
