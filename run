@@ -40,29 +40,54 @@ cat "$(jshon -e 'source' -u < "$config")" > "$filename"
 
 # Compilation json
 compilation_error() {
-    jshon -Q -n object                                    \
-        -n false -i 'accepted'                            \
-        -s 'Compilatie mislukt' -i 'description'          \
-        -s 'compilation error' -i 'status'                \
-        -n array -n object                                \
-            -s "Compilatie" -i 'description'              \
-            -n false -i 'accepted'                        \
-            -n array -n object                            \
-                -s 'code' -i 'format'                     \
-                -s "$(cat $1)" -i 'description'           \
-            -i 0 -i 'messages'                            \
-        -i 0 -i 'groups'
-    exit 0
+    jshon -Q -n object                                          \
+        -n false -i 'accepted'                                  \
+        -s 'compilation error' -i 'status'                      \
+        -s "$1" -i 'description'                                \
+        -n array                                                \
+            -n object                                           \
+                -s 'Compiler' -i 'description'                  \
+                -n array                                        \
+                    -n object                                   \
+                        -n false -i 'accepted'                  \
+                        -n array                                \
+                            -n object                           \
+                                -s 'code' -i 'format'           \
+                                -s "$(cat $2)" -i 'description' \
+                            -i 0                                \
+                        -i 'messages'                           \
+                    -i 0                                        \
+                -i 'groups'                                     \
+            -i 0                                                \
+        -i 'groups'
+}
+
+add_compilation_description() {
+    jshon -Q                                 \
+        -e 'groups' -e 0                     \
+            -e 'groups' -e 0                 \
+                -n object                    \
+                    -s 'text' -i 'format'    \
+                    -s "$1" -i 'description' \
+                -i 'description'             \
+        -p -p -p -p
 }
 
 # Compiling the user code
 if ! javac -Xlint:all "$filename" > "$compilation" 2>&1; then
-    compilation_error "$compilation"
+    compilation_error "in submitted code" "$compilation" \
+    | if grep -q '^package' "$filename"; then
+        add_compilation_description "Are you sure the submitted class is in the default package?"
+      else
+        cat
+    fi
+    exit 0
 fi
 
 # Compiling the tests
 if ! find "$resources" -name '*.java' | xargs javac -cp ".:${resources}:${libs// /:}:judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
-    compilation_error "$compilation"
+    compilation_error "in tests" <(sed 's_.*/\([^/]*.java\)_\1_' "$compilation")
+    exit 0
 fi
 
 # Running the tests
