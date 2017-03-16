@@ -28,12 +28,12 @@ time_limit="$(( time_limit - 10 ))"
 find "$judge/src" -name '*.java' \
     | xargs javac -classpath "$judge/lib/*:/tmp/build" -d /tmp/build -sourcepath "$judge/src"
 jar -cf "judge.jar" -C /tmp/build .
-libs="$(find "$judge/lib" "$resources" -name '*.jar' | xargs echo)"
-cp -t . $libs
+testlibs="$(find "$judge/lib" "$resources" -name '*.jar' | xargs echo | tr ' ' ':')"
+worklibs="$(find "$workdir" -name '*.jar' | xargs echo | tr ' ' ':')"
 
 # Compiling the workdir given code
 find . -name '*.java' \
-    | xargs --no-run-if-empty javac -cp ".:${libs// /:}" -d . -sourcepath .
+    | xargs --no-run-if-empty javac -cp ".:${worklibs}:${testlibs}" -d . -sourcepath .
 
 # Create the Input.java class, containing the submitted code
 cat "$(jshon -e 'source' -u < "$config")" > "$filename"
@@ -74,7 +74,7 @@ add_compilation_description() {
 }
 
 # Compiling the user code
-if ! javac -Xlint:all "$filename" > "$compilation" 2>&1; then
+if ! javac -cp ".:${worklibs}" -Xlint:all "$filename" > "$compilation" 2>&1; then
     compilation_error "in submitted code" "$compilation" \
     | if grep -q '^package' "$filename"; then
         add_compilation_description "Are you sure the submitted class is in the default package?"
@@ -85,11 +85,11 @@ if ! javac -Xlint:all "$filename" > "$compilation" 2>&1; then
 fi
 
 # Compiling the tests
-if ! find "$resources" -name '*.java' | xargs javac -cp ".:${resources}:${libs// /:}:judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
+if ! find "$resources" -name '*.java' | xargs javac -cp ".:${resources}:${worklibs}:${testlibs}:judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
     compilation_error "in tests" <(sed 's_.*/\([^/]*.java\)_\1_' "$compilation")
     exit 0
 fi
 
 # Running the tests
-timeout "$time_limit" java -cp ".:${libs// /:}:judge.jar" dodona.junit.JUnitJSON
+timeout "$time_limit" java -cp ".:${worklibs}:${testlibs}:judge.jar" dodona.junit.JUnitJSON
 
