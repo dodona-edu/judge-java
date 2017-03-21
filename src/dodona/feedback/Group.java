@@ -24,4 +24,8 @@ public class Group<T> {
         this.groups.add(0, child);
     }
 
+    public T lastChild() {
+        return this.groups.get(this.groups.size() - 1);
+    }
+
 }

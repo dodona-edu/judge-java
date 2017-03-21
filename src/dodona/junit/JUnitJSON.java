@@ -25,11 +25,8 @@ public class JUnitJSON {
             System.exit(1);
         }
 
-        TestCounter counter = new TestCounter();
-
         JUnitCore core = new JUnitCore();
-        core.addListener(counter);
-        core.addListener(new JSONListener(counter));
+        core.addListener(new JSONListener());
         core.run(new Class<?>[]{ testSuite });
     }
 
