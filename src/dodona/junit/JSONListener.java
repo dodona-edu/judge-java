@@ -38,6 +38,11 @@ public class JSONListener extends RunListener {
         this.counter = counter;
         this.depth = 0;
         this.currentTab = null;
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            Json json = new Json();
+            writer.print(json.asString(feedback));
+        }));
     }
 
     /**
@@ -56,8 +61,6 @@ public class JSONListener extends RunListener {
      * @param result the summary of the test run, including all the tests that failed
      */
     public void testRunFinished(Result result) throws Exception {
-        Json json = new Json();
-        writer.print(json.asString(feedback));
     }
 
     /**

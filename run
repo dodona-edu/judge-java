@@ -20,9 +20,12 @@ judge="$(jshon -e 'judge' -u < "$config")"
 workdir="$(jshon -e 'workdir' -u < "$config")"
 filename="$(jshon -e 'filename' -u < "$config")"
 
-# The length of the timeout
+# The length of the timeout (with safety margin of 10 seconds)
 time_limit="$(jshon -e 'time_limit' -u < "$config")"
 time_limit="$(( time_limit - 10 ))"
+
+# Record time
+start_time="$(date +"%s")"
 
 # Compiling judge into "build" and getting a jar in the workdir
 find "$judge/src" -name '*.java' \
@@ -90,6 +93,10 @@ if ! find "$resources" -name '*.java' | xargs javac -cp ".:${resources}:${workli
     exit 0
 fi
 
+# Record time
+compiled_time="$(date +"%s")"
+compilation_time="$((compiled_time - start_time))"
+
 # Running the tests
-timeout "$time_limit" java -cp ".:${worklibs}:${testlibs}:judge.jar" dodona.junit.JUnitJSON
+timeout "$((time_limit - compilation_time))" java -cp ".:${worklibs}:${testlibs}:judge.jar" dodona.junit.JUnitJSON
 
