@@ -98,5 +98,5 @@ compiled_time="$(date +"%s")"
 compilation_time="$((compiled_time - start_time))"
 
 # Running the tests
-timeout "$((time_limit - compilation_time))" java -cp ".:${worklibs}:${testlibs}:judge.jar" dodona.junit.JUnitJSON
+timeout --signal=TERM "$((time_limit - compilation_time))" java -cp ".:${worklibs}:${testlibs}:judge.jar" dodona.junit.JUnitJSON
 
