@@ -21,7 +21,6 @@ public class JSONListener extends RunListener {
 
     private final PrintStream writer;
     private final Feedback feedback;
-    private final boolean[] runFinished;
 
     public JSONListener() {
         this(System.out);
@@ -31,26 +30,25 @@ public class JSONListener extends RunListener {
     public JSONListener(PrintStream writer) {
         this.writer = writer;
         this.feedback = new Feedback();
-        this.runFinished = new boolean[] { false };
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            // if(!runFinished) {
-            //     Tab lastTab = feedback.lastChild();
-            //     Context context = lastTab.lastChild();
-            //     context.addMessage("
-            // }
             Json json = new Json();
             writer.print(json.asString(feedback));
+            Runtime.getRuntime().halt(0);
         }));
     }
 
     /* COMPLETE RUN */
     public void beforeExecution() {
-        runFinished[0] = false;
+        feedback.setAccepted(false);
+        feedback.setStatus(Status.TIME_LIMIT_EXCEEDED);
     }
 
     public void afterExecution() {
-        runFinished[0] = true;
+        if(feedback.isStatus(Status.TIME_LIMIT_EXCEEDED)) {
+            feedback.setAccepted(true);
+            feedback.setStatus(Status.CORRECT);
+        }
     }
 
     public void beforeTab(Description description) {
@@ -108,11 +106,11 @@ public class JSONListener extends RunListener {
 
     public void testRunStarted(Description description) throws Exception {
         this.depth = 0;
+        beforeExecution();
     }
 
     public void testRunFinished(Result result) throws Exception {
-        // tests ran succesfully
-        runFinished[0] = true;
+        afterExecution();
     }
 
     public void testSuiteStarted(Description description) throws Exception {

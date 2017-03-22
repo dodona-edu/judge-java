@@ -6,6 +6,10 @@ public class Feedback extends Group<Tab> {
     private boolean accepted = true;
     private String description;
 
+    public boolean isStatus(Status status) {
+        return this.status == status;
+    }
+
     public void setStatus(Status status) {
         this.status = status;
     }
