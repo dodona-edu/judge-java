@@ -82,13 +82,15 @@ public class JSONListener extends RunListener {
             testcase.setDescription(Message.code(failure.getException().toString()));
 
             feedback.setAccepted(false);
-            feedback.worseStatus(Status.WRONG);
+            if(feedback.isStatus(Status.TIME_LIMIT_EXCEEDED)) {
+                feedback.setStatus(Status.WRONG);
+            }
             Throwable thrown = failure.getException();
             while(thrown != null) {
                 if(thrown instanceof AnnotatedThrowable) {
                     testcase.addMessage(((AnnotatedThrowable) thrown).getFeedback());
                 } else if(!(thrown instanceof AssertionError)) {
-                    feedback.worseStatus(Status.RUNTIME_ERROR);
+                    feedback.setStatus(Status.RUNTIME_ERROR);
                     StackTraceElement[] stacktrace = thrown.getStackTrace();
                     for(int i = 0; i < stacktrace.length; i++) {
                         // student code in default package

@@ -1,7 +1,6 @@
 package dodona.feedback;
 
 public enum Status {
-    // order (better to worse) matters!
     CORRECT,
     WRONG,
     TIME_LIMIT_EXCEEDED,
