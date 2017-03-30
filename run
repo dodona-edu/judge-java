@@ -20,9 +20,12 @@ judge="$(jshon -e 'judge' -u < "$config")"
 workdir="$(jshon -e 'workdir' -u < "$config")"
 filename="$(jshon -e 'filename' -u < "$config")"
 
-# The length of the timeout (with safety margin of 10 seconds)
+# time and memory limit with margins
 time_limit="$(jshon -e 'time_limit' -u < "$config")"
 time_limit="$(( time_limit - 10 ))"
+
+memory_limit="$(jshon -e 'memory_limit' -u < "$config")"
+memory_limit="$(( memory_limit * 9 / 10000 ))"
 
 # Record time
 start_time="$(date +"%s")"
@@ -98,5 +101,5 @@ compiled_time="$(date +"%s")"
 compilation_time="$((compiled_time - start_time))"
 
 # Running the tests
-timeout --signal=TERM --preserve-status "$((time_limit - compilation_time))" java -cp ".:${worklibs}:${testlibs}:judge.jar" dodona.junit.JUnitJSON
+timeout --preserve-status "$((time_limit - compilation_time))" java -Xmx"${memory_limit}k" -cp ".:${worklibs}:${testlibs}:judge.jar" dodona.junit.JUnitJSON
 

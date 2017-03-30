@@ -17,6 +17,7 @@ bash "../run" <<HERE
     "workdir": "$(pwd)",
     "filename": "$filename",
     "time_limit": 30,
+    "memory_limit": 100000000,
     "source": "$path_to_exercise/solution/$filename"
 }
 HERE
