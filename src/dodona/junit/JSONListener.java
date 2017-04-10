@@ -66,12 +66,14 @@ public class JSONListener extends RunListener {
     public void beforeTest(Description description) {
         Context context = new Context();
         context.setDescription(Message.code(description.getDisplayName()));
+        context.addMessage(Message.plain("TIMEOUT"));
         feedback.lastChild().addChild(context);
     }
 
     public void aftertest(Failure failure) {
         Tab tab = feedback.lastChild();
         Context context = tab.lastChild();
+        context.clearMessages();
         if(failure == null) {
             context.setAccepted(true);
         } else {

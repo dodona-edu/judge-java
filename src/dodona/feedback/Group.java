@@ -16,6 +16,10 @@ public class Group<T> {
         this.messages.add(Message.plain(message));
     }
 
+    public void clearMessages() {
+        this.messages.clear();
+    }
+
     public void addChild(T child) {
         this.groups.add(child);
     }
