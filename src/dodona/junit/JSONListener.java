@@ -64,10 +64,12 @@ public class JSONListener extends RunListener {
 
 
     public void beforeTest(Description description) {
+        Tab tab = feedback.lastChild();
         Context context = new Context();
         context.setDescription(Message.code(description.getDisplayName()));
         context.addMessage(Message.plain("TIMEOUT"));
-        feedback.lastChild().addChild(context);
+        tab.addChild(context);
+        tab.incrementBadgeCount();
     }
 
     public void aftertest(Failure failure) {
@@ -75,10 +77,9 @@ public class JSONListener extends RunListener {
         Context context = tab.lastChild();
         context.clearMessages();
         if(failure == null) {
+            tab.decrementBadgeCount();
             context.setAccepted(true);
         } else {
-            tab.incrementBadgeCount();
-
             Testcase testcase = new Testcase();
             context.addChild(testcase);
             testcase.setDescription(Message.code(failure.getException().toString()));

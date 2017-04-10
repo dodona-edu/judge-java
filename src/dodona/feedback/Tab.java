@@ -25,4 +25,8 @@ public class Tab extends Group<Context> {
         this.badgeCount += 1;
     }
 
+    public void decrementBadgeCount() {
+        this.badgeCount -= 1;
+    }
+
 }
