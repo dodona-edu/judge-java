@@ -30,20 +30,6 @@ memory_limit="$(( memory_limit * 9 / 10000 ))"
 # Record time
 start_time="$(date +"%s")"
 
-# Compiling judge into "build" and getting a jar in the workdir
-find "$judge/src" -name '*.java' \
-    | xargs javac -classpath "$judge/lib/*:/tmp/build" -d /tmp/build -sourcepath "$judge/src"
-jar -cf "judge.jar" -C /tmp/build .
-testlibs="$(find "$judge/lib" "$resources" -name '*.jar' | xargs echo | tr ' ' ':')"
-worklibs="$(find "$workdir" -name '*.jar' | xargs echo | tr ' ' ':')"
-
-# Compiling the workdir given code
-find . -name '*.java' \
-    | xargs --no-run-if-empty javac -cp ".:${worklibs}:${testlibs}" -d . -sourcepath .
-
-# Create the Input.java class, containing the submitted code
-cat "$(jshon -e 'source' -u < "$config")" > "$filename"
-
 # Compilation json
 compilation_error() {
     jshon -Q -n object                                          \
@@ -78,6 +64,22 @@ add_compilation_description() {
                 -i 'description'             \
         -p -p -p -p
 }
+
+# Compiling judge into "build" and getting a jar in the workdir
+find "$judge/src" -name '*.java' \
+    | xargs javac -classpath "$judge/lib/*:/tmp/build" -d /tmp/build -sourcepath "$judge/src"
+jar -cf "judge.jar" -C /tmp/build .
+testlibs="$(find "$judge/lib" "$resources" -name '*.jar' | xargs echo | tr ' ' ':')"
+worklibs="$(find "$workdir" -name '*.jar' | xargs echo | tr ' ' ':')"
+
+# Compiling the workdir given code
+if ! find . -name '*.java' | xargs --no-run-if-empty javac -cp ".:${worklibs}:${testlibs}" -d . -sourcepath . > "$compilation" 2>&1; then
+    compilation_error "in workdir" <(sed 's_.*/\([^/]*.java\)_\1_' "$compilation")
+    exit 0
+fi
+
+# Create the Input.java class, containing the submitted code
+cat "$(jshon -e 'source' -u < "$config")" > "$filename"
 
 # Compiling the user code
 if ! javac -cp ".:${worklibs}" -Xlint:all "$filename" > "$compilation" 2>&1; then
