@@ -94,11 +94,17 @@ public class JSONListener extends RunListener {
                     testcase.addMessage(((AnnotatedThrowable) thrown).getFeedback());
                 } else if(!(thrown instanceof AssertionError)) {
                     feedback.setStatus(Status.RUNTIME_ERROR);
+                    testcase.setDescription(Message.code(thrown.toString()));
+                    testcase.addMessage(Message.code("Caused by " + thrown));
+
                     StackTraceElement[] stacktrace = thrown.getStackTrace();
+                    boolean leftDefaultPackage = false;
                     for(int i = 0; i < stacktrace.length; i++) {
                         // student code in default package
-                        if(stacktrace[i].getClassName().indexOf('.') > 0) break;
-                        testcase.addMessage(Message.code("at " + stacktrace[i].toString()));
+                        boolean inDefaultPackage = stacktrace[i].getClassName().indexOf('.') < 0;
+                        if(leftDefaultPackage && !inDefaultPackage) break;
+                        if(inDefaultPackage) leftDefaultPackage = true;
+                        testcase.addMessage(Message.code(" at " + stacktrace[i].toString()));
                     }
                 }
                 thrown = thrown.getCause();
