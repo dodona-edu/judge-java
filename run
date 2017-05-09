@@ -59,7 +59,7 @@ add_compilation_description() {
         -e 'groups' -e 0                     \
             -e 'groups' -e 0                 \
                 -n object                    \
-                    -s 'text' -i 'format'    \
+                    -s 'plain' -i 'format'    \
                     -s "$1" -i 'description' \
                 -i 'description'             \
         -p -p -p -p
