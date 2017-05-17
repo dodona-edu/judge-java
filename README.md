@@ -61,3 +61,10 @@ While above description leaves a lot of interpretation, here is how a new exerci
 - I write the description. In the description I can now link to `media/SimpleTest.java` and `media/workdir/...` to give the `SimpleTest` and other files in the `workdir` to the student.
 - I write some more complex tests (usually with JUnit's `Parameterized` runner), testing each with method above. These tests I put in `evaluation`, because they often contain a solution to the exercise.
 
+### Test files
+
+As mentioned, test files can be pure JUnit test files, including all features in the latest JUnit (I especially recommend Parameterized). Some extras are available though:
+
+- By importing `dodona.junit.TabTitle` in your exercise, you can set the title of the tab in dodona for this test (each test in TestSuite will produce on tab). Just add the `@TabTitle("Some Title")` annotation to your test class.
+- `dodona.junit.MessageWriter` is a JUnit test rule. By using `@Rule public MessageWriter out = new MessageWriter();` in your test class, you can write to `out` as if it were `System.out` (it's actually a `PrintWriter`, not a `PrintStream`, but they share most methods). Whatever you write to it in a test will be visible to the students if that test fails. Useful for e.g. printing the input matrices to a matrix multiplication exercise test, along with the expected and generated outputs.
+
