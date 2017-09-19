@@ -28,14 +28,14 @@ Each exercise has a JSON configuration file, for example:
 }
 ```
 
-Please use descriptive names in `description/names/...`, these will be shown to the user, often without context (it's not very informative to have an exercise called "1" in you list of recent exercises if you're following 3 courses at a time).
+Please use descriptive names in `description/names/...`, these will be shown to the user, often without context (it's not very informative to have an exercise called "1" in your list of recent exercises if you're following 3 courses at a time).
 
 `evaluation/filename` is the name of the file the students should submit. As this is a Java judge, that's the name of the public class they should submit + `.java`.
 
 Other configuration values used by the Java judge are:
 - `evaluation/time_limit` - For how long the tests can continue before a "time limit exceeded" is reported.
 - `evaluation/memory_limit` - How much memory the docker is given.
-- `evalution/network_enabled` - Whether the code inside the docker can use the network. Disabled by default and should be enabled sparingly. While we may try to keep everything as secure as possible, a network allows for remote shells. Even if these remote shells have limited permissions, talented students might try to escalate them. 
+- `evaluation/network_enabled` - Whether the code inside the docker can use the network. Disabled by default and should be enabled sparingly. While we may try to keep everything as secure as possible, a network allows for remote shells. Even if these remote shells have limited permissions, talented students might try to escalate them. 
 
 ### Where to put which code?
 
