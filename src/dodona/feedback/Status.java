@@ -5,5 +5,6 @@ public enum Status {
     WRONG,
     TIME_LIMIT_EXCEEDED,
     MEMORY_LIMIT_EXCEEDED,
-    RUNTIME_ERROR;
+    RUNTIME_ERROR,
+    INTERNAL_ERROR;
 }

@@ -2,8 +2,8 @@ package dodona.feedback;
 
 public class Feedback extends Group<Tab> {
 
-    private Status status = Status.CORRECT;
-    private boolean accepted = true;
+    private Status status = Status.INTERNAL_ERROR;
+    private boolean accepted = false;
     private String description;
 
     public boolean isStatus(Status status) {
