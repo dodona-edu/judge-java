@@ -1,5 +1,8 @@
 #!/bin/bash
 
+debug() { echo -n "$@" >&2; date >&2; }
+debug start
+
 set -o pipefail -e
 
 # Temp files
@@ -65,6 +68,8 @@ add_compilation_description() {
         -p -p -p -p
 }
 
+debug after init
+
 # Compiling judge into "build" and getting a jar in the workdir
 find "$judge/src" -name '*.java' \
     | xargs javac -classpath "$judge/lib/*:/tmp/build" -d /tmp/build -sourcepath "$judge/src"
@@ -72,11 +77,15 @@ jar -cf "judge.jar" -C /tmp/build .
 testlibs="$(find "$judge/lib" "$resources" -name '*.jar' | xargs echo | tr ' ' ':')"
 worklibs="$(find "$workdir" -name '*.jar' | xargs echo | tr ' ' ':')"
 
+debug compiled judge
+
 # Compiling the workdir given code
 if ! find . -name '*.java' | xargs --no-run-if-empty javac -cp ".:${worklibs}:${testlibs}" -d . -sourcepath . > "$compilation" 2>&1; then
     compilation_error "in workdir" <(sed 's_.*/\([^/]*.java\)_\1_' "$compilation")
     exit 0
 fi
+
+debug compiled workdir
 
 # Create the Input.java class, containing the submitted code
 cat "$(jshon -e 'source' -u < "$config")" > "$filename"
@@ -92,11 +101,15 @@ if ! javac -cp ".:${worklibs}" -Xlint:all "$filename" > "$compilation" 2>&1; the
     exit 0
 fi
 
+debug compiled user code
+
 # Compiling the tests
 if ! find "$resources" -name '*.java' | xargs javac -cp ".:${resources}:${worklibs}:${testlibs}:judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
     compilation_error "in tests" <(sed 's_.*/\([^/]*.java\)_\1_' "$compilation")
     exit 0
 fi
+
+debug compiled tests
 
 # Record time
 compiled_time="$(date +"%s")"
@@ -105,3 +118,4 @@ compilation_time="$((compiled_time - start_time))"
 # Running the tests
 timeout --preserve-status "$((time_limit - compilation_time))" java -Xmx"${memory_limit}k" -cp ".:${worklibs}:${testlibs}:judge.jar" dodona.junit.JUnitJSON
 
+debug finished
