@@ -32,6 +32,7 @@ public class JSONListener extends RunListener {
         this.feedback = new Feedback();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            feedback.deriveDescription();
             Json json = new Json();
             writer.print(json.asString(feedback));
             Runtime.getRuntime().halt(0);

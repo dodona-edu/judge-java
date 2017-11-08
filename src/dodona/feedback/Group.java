@@ -2,6 +2,7 @@ package dodona.feedback;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.stream.Stream;
 
 public class Group<T> {
 
@@ -30,6 +31,10 @@ public class Group<T> {
 
     public T lastChild() {
         return this.groups.get(this.groups.size() - 1);
+    }
+
+    public Stream<T> children() {
+        return this.groups.stream();
     }
 
 }

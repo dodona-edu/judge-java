@@ -29,4 +29,8 @@ public class Tab extends Group<Context> {
         this.badgeCount -= 1;
     }
 
+    public int getBadgeCount() {
+        return badgeCount;
+    }
+
 }

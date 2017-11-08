@@ -22,3 +22,4 @@ bash "../run" <<HERE
 }
 HERE
 
+echo

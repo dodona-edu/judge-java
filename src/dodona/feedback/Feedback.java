@@ -18,4 +18,20 @@ public class Feedback extends Group<Tab> {
         this.accepted = accepted;
     }
 
+    public void deriveDescription() {
+        long failed = children().mapToInt(Tab::getBadgeCount).sum();
+        long executed = children().mapToLong(t -> t.children().count()).sum();
+        switch(status) {
+            case TIME_LIMIT_EXCEEDED:
+                this.description = executed + " tests uitgevoerd";
+                break;
+            case CORRECT:
+                this.description = (executed - failed) + " tests geslaagd";
+                break;
+            default:
+                this.description = failed + " tests mislukt";
+                break;
+        }
+    }
+
 }
