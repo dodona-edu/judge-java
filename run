@@ -70,11 +70,17 @@ add_compilation_description() {
 
 debug after init
 
+# Compiling judge into "build" and getting a jar in the workdir
+find "$judge/src" -name '*.java' \
+    | xargs javac -classpath "$judge/lib/*:/tmp/build" -d /tmp/build -sourcepath "$judge/src"
+jar -cf "judge.jar" -C /tmp/build .
 testlibs="$(find "$judge/lib" "$resources" -name '*.jar' | xargs echo | tr ' ' ':')"
 worklibs="$(find "$workdir" -name '*.jar' | xargs echo | tr ' ' ':')"
 
+debug compiled judge
+
 # Compiling the workdir given code
-if ! find . -name '*.java' | xargs --no-run-if-empty javac -cp ".:${worklibs}" -d . -sourcepath . > "$compilation" 2>&1; then
+if ! find . -name '*.java' | xargs --no-run-if-empty javac -cp ".:${worklibs}:${testlibs}" -d . -sourcepath . > "$compilation" 2>&1; then
     compilation_error "in workdir" <(sed 's_.*/\([^/]*.java\)_\1_' "$compilation")
     exit 0
 fi
@@ -86,7 +92,6 @@ cat "$(jshon -e 'source' -u < "$config")" > "$filename"
 
 # Compiling the user code
 if ! javac -cp ".:${worklibs}" -Xlint:all "$filename" > "$compilation" 2>&1; then
-    ls >> "$compilation"
     compilation_error "in submitted code" "$compilation" \
     | if grep -q '^package' "$filename"; then
         add_compilation_description "Are you sure the submitted class is in the default package?"
@@ -97,13 +102,6 @@ if ! javac -cp ".:${worklibs}" -Xlint:all "$filename" > "$compilation" 2>&1; the
 fi
 
 debug compiled user code
-
-# Compiling judge into "build" and getting a jar in the workdir
-find "$judge/src" -name '*.java' \
-    | xargs javac -classpath "$judge/lib/*:/tmp/build" -d /tmp/build -sourcepath "$judge/src"
-jar -cf "judge.jar" -C /tmp/build .
-
-debug compiled judge
 
 # Compiling the tests
 if ! find "$resources" -name '*.java' | xargs javac -cp ".:${resources}:${worklibs}:${testlibs}:judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
