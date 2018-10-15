@@ -8,10 +8,29 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Assert;
 
 public class AssertionStubber {
+
+
+    /* =========================================================================
+     * Civilisation
+     */
+    private static final Map<Class<?>, Class<?>> primitives = new HashMap<>();
+    static {
+        primitives.put(Boolean.class, boolean.class);
+        primitives.put(Character.class, char.class);
+        primitives.put(Byte.class, byte.class);
+        primitives.put(Short.class, short.class);
+        primitives.put(Integer.class, int.class);
+        primitives.put(Long.class, long.class);
+        primitives.put(Float.class, float.class);
+        primitives.put(Double.class, double.class);
+        primitives.put(Void.class, void.class);
+    }
 
     public <T> T stub(Class<T> expectedInterface, Class<?> solution, Object... constructionParameters) {
         return expectedInterface.cast(Proxy.newProxyInstance(
@@ -31,7 +50,9 @@ public class AssertionStubber {
             Constructor<?> constructor = null;
             Class<?>[] constructionParameterTypes = new Class<?>[constructionParameters.length];
             for(int i = 0; i < constructionParameters.length; i++) {
-                constructionParameterTypes[i] = constructionParameters[i].getClass();
+                constructionParameterTypes[i] = primitives.getOrDefault(
+                    constructionParameters[i].getClass(),
+                    constructionParameters[i].getClass());
             }
             try {
                 constructor = solution.getConstructor(constructionParameterTypes);
