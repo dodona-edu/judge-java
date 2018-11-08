@@ -8,8 +8,11 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.IntStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Arrays;
+import java.util.Optional;
 
 import org.junit.Assert;
 
@@ -69,12 +72,26 @@ public class AssertionStubber {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            Method solutionMethod = null;
+            Optional<Method> solutionMethod = Optional.empty();
             try {
-                solutionMethod = solutionClass.getMethod(method.getName(), method.getParameterTypes());
-            } catch(NoSuchMethodException e) { missingMethod(method); }
+                solutionMethod = Optional.of(solutionClass.getMethod(method.getName(), method.getParameterTypes()));
+            } catch(NoSuchMethodException e) {
+                solutionMethod = Arrays.stream(solutionClass.getMethods())
+                    .filter(c -> method.getName().equals(c.getName()))
+                    .filter(c -> method.getParameterCount() == c.getParameterCount())
+                    .filter(c -> method.getReturnType().isAssignableFrom(c.getReturnType()))
+                    .filter(c -> IntStream
+                        .range(0, method.getParameterCount())
+                        .allMatch(i -> c.getParameterTypes()[i].isInstance(args[i])))
+                    .findFirst();
+            }
 
-            return solutionMethod.invoke(solutionInstance, args);
+            if(solutionMethod.isPresent()) {
+                return solutionMethod.get().invoke(solutionInstance, args);
+            } else {
+                missingMethod(method);
+                return null;
+            }
         }
 
     }
