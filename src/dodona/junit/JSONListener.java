@@ -95,6 +95,7 @@ public class JSONListener extends RunListener {
                     testcase.addMessage(((AnnotatedThrowable) thrown).getFeedback());
                 } else if(thrown instanceof TestCarryingThrowable) {
                     testcase.addChild(((TestCarryingThrowable) thrown).getTest());
+                    testcase.setDescription(null);
                 } else if(!(thrown instanceof AssertionError)) {
                     feedback.setStatus(Status.RUNTIME_ERROR);
                     testcase.setDescription(Message.code(thrown.toString()));
