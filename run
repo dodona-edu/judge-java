@@ -36,27 +36,115 @@ allow_compilation_warnings="$(jshon -Q -e 'allow_compilation_warnings' -u < "$co
 # Record time
 start_time="$(date +"%s")"
 
+# User friendly compilation errors
+pretty_compilation_errors() {
+    # Test the name of the class.
+    wrong_class=$(echo $compile_err | grep -c "should be declared in a file named")
+    if [ "$wrong_class" -eq "1" ]; then
+        expect_class_name=$(echo $compile_err | egrep -o "^\w+.java" | sed "s/.java//g")
+        student_class_name=$(echo $compile_err | egrep -o "public class \w+" | sed "s/public class //g")
+        echo "De ingediende klasse heeft een foute naam. De klasse hoort als naam \"$expect_class_name\" te hebben, jouw klasse heeft als naam \"$student_class_name\"."
+    fi
+}
+
+# Compilation parsing
+compilation_error_count() {
+    echo "$1" | egrep -o "[0-9]+ errors?$" | sed "s/[^0-9]//g"
+}
+
+compilation_warning_count() {
+    echo "$1" | egrep -o "[0-9]+ warnings?$" | sed "s/[^0-9]//g"
+}
+
 # Compilation json
-compilation_error() {
-    jshon -Q -n object                                          \
-        -n false -i 'accepted'                                  \
-        -s 'compilation error' -i 'status'                      \
-        -s "$1" -i 'description'                                \
-        -n array                                                \
-            -n object                                           \
-                -s 'Compiler' -i 'description'                  \
-                -n array                                        \
-                    -n object                                   \
-                        -n false -i 'accepted'                  \
-                        -n array                                \
-                            -n object                           \
-                                -s 'code' -i 'format'           \
-                                -s "$(cat $2)" -i 'description' \
-                            -i 0                                \
-                        -i 'messages'                           \
-                    -i 0                                        \
-                -i 'groups'                                     \
-            -i 0                                                \
+compilation_error_in_submission() {
+    compile_err=$(cat $1)
+
+    # Get the amount of errors/warnings as a number.
+    compile_err_count=$(compilation_error_count "$compile_err")
+    compile_warn_count=$(compilation_warning_count "$compile_err")
+
+    # Get the pretty feedback.
+    # TODO: Maybe create a new message for every parsed item instead of simply
+    # TODO: concatenating everything in 1 message.
+    compile_err_pretty=$(pretty_compilation_errors "$compile_err")
+
+    # Strip the amount of errors/warnings since we're already displaying that
+    # somewhere else.
+    compile_err=$(echo "$compile_err" | sed "s/[0-9]\+ \(error\|warning\)s\?$//g")
+
+    if [ "$compile_err_count" -eq "1" ]; then
+        compile_err_word="fout"
+    else
+        compile_err_word="fouten"
+    fi
+
+    if [ "$compile_warn_count" -eq "1" ]; then
+        compile_warn_word="waarschuwing"
+    else
+        compile_warn_word="waarschuwingen"
+    fi
+
+    compile_msg="Je oplossing kon niet worden gecompileerd, de compiler rapporteerde $compile_err_count $compile_err_word en $compile_warn_count $compile_warn_word:"
+
+    jshon -Q -n object                                                    \
+        -n false -i 'accepted'                                            \
+        -s 'compilation error' -i 'status'                                \
+        -s "$compile_err_count $compile_err_word" -i 'description'        \
+        -n array                                                          \
+            -n object                                                     \
+                -s 'Compiler' -i 'description'                            \
+                -n array                                                  \
+                    -n object                                             \
+                        -n false -i 'accepted'                            \
+                        -n array                                          \
+                            -n object                                     \
+                                -s 'code' -i 'format'                     \
+                                -s "$compile_err" -i 'description'        \
+                            -i 0                                          \
+                            -n object                                     \
+                                -s 'code' -i 'format'                     \
+                                -s "$compile_err_pretty" -i 'description' \
+                            -i 0                                          \
+                            -n object                                     \
+                                -s 'plain' -i 'format'                    \
+                                -s "$compile_msg" -i 'description'        \
+                            -i 0                                          \
+                        -i 'messages'                                     \
+                    -i 0                                                  \
+                -i 'groups'                                               \
+            -i 0                                                          \
+        -i 'groups'
+}
+
+compilation_error_in_tests() {
+    compile_err=$(cat $1)
+    description="De tests van deze opgave bevatten een fout, contacteer de lesgever."
+
+    jshon -Q -n object                                             \
+        -n false -i 'accepted'                                     \
+        -s 'compilation error' -i 'status'                         \
+        -s "in tests" -i 'description'                             \
+        -n array                                                   \
+            -n object                                              \
+                -s 'Compiler' -i 'description'                     \
+                -n array                                           \
+                    -n object                                      \
+                        -n false -i 'accepted'                     \
+                        -n array                                   \
+                            -n object                              \
+                                -s 'code' -i 'format'              \
+                                -s 'staff' -i 'permission'         \
+                                -s "$compile_err" -i 'description' \
+                            -i 0                                   \
+                            -n object                              \
+                                -s 'plain' -i 'format'             \
+                                -s "$description" -i 'description' \
+                            -i 0                                   \
+                        -i 'messages'                              \
+                    -i 0                                           \
+                -i 'groups'                                        \
+            -i 0                                                   \
         -i 'groups'
 }
 
@@ -84,7 +172,7 @@ debug compiled judge
 
 # Compiling the workdir given code
 if ! find . -name '*.java' | xargs --no-run-if-empty javac -cp ".:${worklibs}:${testlibs}" -d . -sourcepath . > "$compilation" 2>&1; then
-    compilation_error "in workdir" <(sed 's_.*/\([^/]*.java\)_\1_' "$compilation")
+    compilation_error_in_tests <(sed 's_.*/\([^/]*.java\)_\1_' "$compilation")
     exit 0
 fi
 
@@ -98,7 +186,7 @@ compile_opts="-Xlint:all"
 [ "$allow_compilation_warnings" == 'true' ] || compile_opts+=' -Werror'
 
 if ! javac -cp ".:${worklibs}" ${compile_opts} "$filename" > "$compilation" 2>&1; then
-    compilation_error "in submitted code" "$compilation" \
+    compilation_error_in_submission "$compilation" \
     | if grep -q '^package' "$filename"; then
         add_compilation_description "Are you sure the submitted class is in the default package?"
       else
@@ -111,7 +199,7 @@ debug compiled user code
 
 # Compiling the tests
 if ! find "$resources" -name '*.java' | xargs javac -cp ".:${resources}:${worklibs}:${testlibs}:judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
-    compilation_error "in tests" <(sed 's_.*/\([^/]*.java\)_\1_' "$compilation")
+    compilation_error_in_tests <(sed 's_.*/\([^/]*.java\)_\1_' "$compilation")
     exit 0
 fi
 
