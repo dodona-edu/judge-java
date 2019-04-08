@@ -31,7 +31,7 @@ public class Feedback extends Group<Tab> {
                 this.description = (executed - failed) + " " + pluralize(executed - failed, "test", "testen") + " geslaagd";
                 break;
             default:
-                this.description = failed + " " + pluralize(failed, "test", "testen") + " mislukt";
+                this.description = failed + " " + pluralize(failed, "test", "testen") + " gefaald";
 
                 break;
         }
