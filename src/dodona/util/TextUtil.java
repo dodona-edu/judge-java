@@ -3,7 +3,7 @@ package dodona.util;
 /**
  * Utilities for text.
  */
-public enum TextUtil {
+public enum TextUtil {;
 
     /**
      * Pluralizes the given string.
