@@ -1,8 +1,5 @@
 package dodona.feedback;
 
-import java.util.List;
-import java.util.Optional;
-
 public class Tab extends Group<Context> {
 
     private int badgeCount;

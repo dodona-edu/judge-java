@@ -1,15 +1,15 @@
 package dodona.junit;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import dodona.feedback.Format;
+import dodona.feedback.Message;
+import dodona.feedback.Permission;
 
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
-import dodona.feedback.Message;
-import dodona.feedback.Permission;
-import dodona.feedback.Format;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 public class MessageWriter extends PrintWriter implements TestRule {
 

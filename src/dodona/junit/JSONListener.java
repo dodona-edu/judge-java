@@ -1,21 +1,21 @@
 package dodona.junit;
 
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import dodona.feedback.Context;
+import dodona.feedback.Feedback;
+import dodona.feedback.Message;
+import dodona.feedback.Status;
+import dodona.feedback.Tab;
+import dodona.feedback.Testcase;
+import dodona.json.Json;
 
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.Result;
 
-import dodona.json.Json;
-import dodona.feedback.Feedback;
-import dodona.feedback.Tab;
-import dodona.feedback.Message;
-import dodona.feedback.Context;
-import dodona.feedback.Testcase;
-import dodona.feedback.Status;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 public class JSONListener extends RunListener {
 

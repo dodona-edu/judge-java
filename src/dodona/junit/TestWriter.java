@@ -1,12 +1,12 @@
 package dodona.junit;
 
+import dodona.feedback.Message;
+import dodona.feedback.Test;
+
+import org.junit.Assert;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
-import org.junit.Assert;
-
-import dodona.feedback.Message;
-import dodona.feedback.Test;
 
 public class TestWriter implements TestRule {
 

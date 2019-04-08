@@ -1,7 +1,5 @@
 package dodona.junit;
 
-import java.util.List;
-
 import dodona.feedback.Test;
 
 public class TestCarryingThrowable extends Throwable {
