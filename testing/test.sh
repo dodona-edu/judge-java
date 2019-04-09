@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 path_to_exercise="$1"
 

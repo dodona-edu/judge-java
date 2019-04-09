@@ -1,6 +1,6 @@
 #!/bin/bash
 
-debug() { echo -n "$@ - " >&2; date >&2; }
+debug() { echo -n "$@" " - " >&2; date >&2; }
 debug start
 
 set -o pipefail -e
@@ -38,124 +38,169 @@ allow_compilation_warnings="$(jshon -Q -e 'allow_compilation_warnings' -u < "$co
 source $judge/dodona-json
 
 compilation_error_count() {
-    echo "$1" | egrep -o "[0-9]+ errors?$" | sed "s/[^0-9]//g" || echo "0"
+    tail -n2 | sed -n 's/^\([0-9]\+\) errors\?$/\1/p'
 }
 
 compilation_warning_count() {
-    echo "$1" | egrep -o "[0-9]+ warnings?$" | sed "s/[^0-9]//g" || echo "0"
+    tail -n2 | sed -n 's/^\([0-9]\+\) warnings\?$/\1/p'
 }
 
 explain_compilation_error() {
-    echo ""
+    case "$1" in
+        *"should be declared in a file named"*)
+            # Wrong class name.
+            expected_class_name="${filename%.java}"
+            echo "De naam van je klasse hoort \"$expected_class_name\" te zijn."
+            ;;
+        *"cannot find symbol"*)
+            # Cannot find symbol - forgotten import.
+            class_name=$(echo "$1" | grep -o "symbol:\s*class \S\+" | sed "s/.*class \(\S\+\)\\\n/\1/" || true)
+            [ -z "$class_name" ] || echo "Je probeert een onbekende klasse \`$class_name\` te gebruiken. Mogelijks ben je de noodzakelijke \`import\` vergeten."
+            ;;
+        *"assign a value to final variable"*)
+            # Assignment to final variable.
+            variable_name=$(echo "$1" | grep -o "final variable \S\+" | sed "s/final variable //" | sed "s/\\\n//")
+            echo "Variabelen die als \`final\` zijn gedeclareerd, kunnen niet meer worden aangepast eens ze een waarde hebben. Verwijder het \`final\` keyword bij de variabele \"$variable_name\" om dit op te lossen."
+            ;;
+    esac
 }
 
-parse_compilation_error() {
+explain_compilation_warning() {
+    case "$1" in
+        *"found raw type"*)
+            echo "Het is aangeraden een type mee te geven aan generieke klassen."
+            ;;
+    esac
+}
+
+parse_compilation_error_staff() {
+    # arg1: 1 compiler log
+
     dodona_start_context
 
-    # Print the compilation message.
-    dodona_start_testcase_code_message "$1"
+    # Start the case.
+    dodona_start_testcase_markdown_message "Compilatiefout"
 
-    # Try to explain this compilation message, add it to the testcase if found.
-    explanation=$(explain_compilation_error "$1")
-    [[ "$explanation" == "" ]] || dodona_append_plain_message "$explanation"
+    # Append the compilation log, only visible for staff.
+    dodona_append_code_message_staff "$1"
 
-    # Get the code annotation information and annotate the code.
+    dodona_close_failed_testcase
+    dodona_close_failed_context
+}
+
+parse_compilation_error_student() {
+    # arg1: 1 compiler log
+    dodona_start_context
+
+    # Determine the kind of compilation message.
+    log_kind=$(echo "$1" | grep -o "^$filename:[0-9]\+: warning:" | grep -o "warning" || echo 'error')
+
+    # Try to explain the compilation message.
+    if [ "$log_kind" == 'error' ]; then
+        explanation=$(explain_compilation_error "$1")
+    else
+        explanation=$(explain_compilation_warning "$1")
+    fi
+
+    # Start the case, add the explanation message if it exists.
+    [ "$log_kind" == 'error' ] && testcase_msg="Compilatiefout" || testcase_msg="Compilatiewaarschuwing"
+    [ -z "$explanation" ] || testcase_msg+=": $explanation"
+    dodona_start_testcase_markdown_message "$testcase_msg"
+
+    # Append the compilation output.
+    dodona_append_code_message "$1"
+
+    # Get the code annotation information.
     annotation_column=$(echo "$1" | grep -o "\s*\^" | wc -c)
     annotation_column=$((annotation_column - 2))
-    annotation_row=$(echo "$1" | sed "s/^$filename:\([0-9]\+\):.*/\1/g")
+    annotation_row=$(echo "$1" | grep -o "^$filename:[0-9]\+:" | sed "s/^$filename:\([0-9]\+\):/\1/")
     annotation_row=$((annotation_row - 1))
-    annotation_is_error=$(echo "$1" | grep -c "^$filename:[0-9]\+: error" || true)
 
-    if [[ "$explanation" == "" ]]; then
-        annotation_text=$(echo -e "$1" | sed "s/.*: error://" | sed "s/.*: warning://" | head -n 1)
+    if [ -z "$explanation" ]; then
+        # Insert the first line of the compilation log.
+        annotation_text=$(echo "$1" | sed "s/.*: error://" | sed "s/.*: warning://" | head -n 1)
     else
-        annotation_text="$explanation"
+        # Strip the ` from markdown explanations.
+        annotation_text=$(echo "$explanation" | tr -d '\`')
     fi
 
-    if [[ "$annotation_is_error" == "1" ]]; then
-        dodona_annotate_code_error "$annotation_row" "$annotation_column" "$annotation_text"
-    else
-        dodona_annotate_code_warning "$annotation_row" "$annotation_column" "$annotation_text"
-    fi
+    # Annotate the code accordingly.
+    dodona_annotate_code "$log_kind" "$annotation_row" "$annotation_column" "$annotation_text"
 
     dodona_close_failed_testcase
     dodona_close_failed_context
 }
 
 parse_compilation_errors() {
-    # arg1 raw compilation output
+    # arg1: permission
+    # reads log from stdin
 
-    # Processes the compilation errors, store them in an array, after which the
-    # invidual errors/warnings are processed.
-    compile_errs=()
+    # Loop over the compile log and process each message individually.
     compile_err=""
-    while IFS="\n" read -r line; do
-        new_case=$(echo "$line" | egrep -c "^$filename:[0-9]+:" || true)
-
-        if [[ "$new_case" == "0" || $compile_err == "" ]]; then
-            compile_err+="$line\n"
-            continue
+    while IFS= read -r line; do
+        if echo "$line" | egrep -q "^$filename:[0-9]+:"; then
+            if [ -n "$compile_err" ]; then
+                if [ "$1" = 'student' ]; then
+                    parse_compilation_error_student "$compile_err" </dev/zero
+                else
+                    parse_compilation_error_staff "$compile_err" </dev/zero
+                fi
+            fi
+            compile_err="$line"
+        else
+            compile_err="$(printf '%s\n%s' "$compile_err" "$line")"
         fi
-
-        compile_errs+=("$compile_err")
-        compile_err="$line\n"
-    done <<< "$1"
+    done
 
     # Last error/warning will end with "x errors/y warnings; remove this part."
     compile_err=$(echo "$compile_err" | sed "s/[0-9]\+ warnings\?//g")
     compile_err=$(echo "$compile_err" | sed "s/[0-9]\+ errors\?//g")
-    compile_errs+=("$compile_err")
 
-    # The errors and warnings could not be processed in the previous while
-    # loop due to problems with jshon/stdin and read.
-    for i in "${compile_errs[@]}"; do
-        parse_compilation_error "$i"
-    done
+    # Process the last error/warning.
+    if [ "$1" == 'student' ]; then
+        parse_compilation_error_student "$compile_err" </dev/zero
+    else
+        parse_compilation_error_staff "$compile_err" </dev/zero
+    fi
 }
 
 compilation_error_in_submission() {
     compile_log=$(cat $1)
 
     # Parse the amount of compilation errors and warnings.
-    compile_err_count=$(compilation_error_count "$compile_log")
-    compile_warn_count=$(compilation_warning_count "$compile_log")
+    compile_err_count=$(compilation_error_count < "$1")
+    compile_warn_count=$(compilation_warning_count < "$1")
     compile_errwarn_sum="$((compile_err_count + compile_warn_count))"
 
     # Get the correct noun.
-    [[ "$compile_err_count" == "1" ]] && compile_err_noun="fout" || compile_err_noun="fouten"
-    [[ "$compile_warn_count" == "1" ]] && compile_warn_noun="waarschuwing" || compile_warn_noun="waarschuwingen"
+    [ "$compile_err_count" == "1" ] && compile_err_noun="fout" || compile_err_noun="fouten"
+    [ "$compile_warn_count" == "1" ] && compile_warn_noun="waarschuwing" || compile_warn_noun="waarschuwingen"
+
+    # Build the compilation message.
+    compile_message=""
+    [ "$compile_err_count" == "" ] || compile_message="$compile_err_count $compile_err_noun"
+    [ "$compile_err_count" != "" ] && [ "$compile_warn_count" != "" ] && compile_message+=" en "
+    [ "$compile_warn_count" == "" ] || compile_message+="$compile_warn_count $compile_warn_noun"
 
     dodona_start_judgement
     dodona_start_tab "Compiler"
-    dodona_append_plain_message "Je code kon niet worden gecompileerd en bijgevolg niet worden uitgevoerd. De compiler rapporteerde $compile_err_count $compile_err_noun en $compile_warn_count $compile_warn_noun."
+    dodona_append_html_message "<div class=\"callout callout-info\">Je code kon niet worden gecompileerd en bijgevolg niet worden uitgevoerd. De compiler rapporteerde $compile_message.</div>"
 
-    parse_compilation_errors "$compile_log"
+    parse_compilation_errors 'student' <<< "$compile_log"
 
     dodona_close_tab $compile_errwarn_sum
     dodona_close_judgement_compilation_error "$compile_err_count $compile_err_noun"
 }
 
 compilation_error_in_tests() {
-    compile_log=$(cat $1)
+    dodona_start_judgement
+    dodona_start_tab "Compiler"
+    dodona_append_html_message "<div class=\"callout callout-info\">Er ging iets mis tijdens het compileren van de testen voor deze oefening. Contacteer je lesgever.</div>"
 
-    # Parse the amount of compilation errors and warnings.
-    compile_err_count=$(compilation_error_count "$compile_log")
-    compile_warn_count=$(compilation_warning_count "$compile_log")
-    compile_errwarn_sum="$((compile_err_count + compile_warn_count))"
+    parse_compilation_errors 'staff' < "$1"
 
-    # Get the correct noun.
-    [[ "$compile_err_count" == "1" ]] && compile_err_noun="fout" || compile_err_noun="fouten"
-    [[ "$compile_warn_count" == "1" ]] && compile_warn_noun="waarschuwing" || compile_warn_noun="waarschuwingen"
-
-    # dodona_start_judgement
-    # dodona_start_tab "Compiler"
-    # dodona_append_plain_message "Je code kon niet worden gecompileerd en bijgevolg niet worden uitgevoerd. \
-    # De compiler rapporteerde $compile_err_count $compile_err_noun en $compile_warn_count $compile_warn_noun."
-
-    parse_compilation_errors "$compile_log"
-
-    # dodona_close_tab $compile_errwarn_sum
-    # dodona_close_judgement_compilation_error 'a'
+    dodona_close_tab
+    dodona_close_judgement_compilation_error "in de testen"
 }
 
 

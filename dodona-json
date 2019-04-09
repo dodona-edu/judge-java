@@ -1,22 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 
 ###################### [ Partial output helper functions ] #####################
 
 ### [ Annotations ]
-dodona_annotate_code_error() {
-    # arg1: row
-    # arg2: column
-    # arg3: annotation text
-    dodona_annotate_code 'error' "$1" "$2" "$3"
-}
-
-dodona_annotate_code_warning() {
-    # arg1: row
-    # arg2: column
-    # arg3: annotation text
-    dodona_annotate_code 'warning' "$1" "$2" "$3"
-}
-
 dodona_annotate_code() {
     # arg1: type
     # arg2: row
@@ -67,6 +53,26 @@ dodona_start_judgement() {
 }
 
 ### [ Messages ]
+dodona_append_code_message_staff() {
+    # arg1: message contents
+    dodona_append_message 'code' 'staff' "$1"
+}
+
+dodona_append_code_message() {
+    # arg1: message contents
+    dodona_append_message 'code' 'student' "$1"
+}
+
+dodona_append_html_message() {
+    # arg1: message contents
+    dodona_append_message 'html' 'student' "$1"
+}
+
+dodona_append_markdown_message() {
+    # arg1: message contents
+    dodona_append_message 'markdown' 'student' "$1"
+}
+
 dodona_append_plain_message() {
     # arg1: message contents
     dodona_append_message 'plain' 'student' "$1"
@@ -89,7 +95,7 @@ dodona_append_message() {
 ### [ Tabs ]
 dodona_close_tab() {
     # arg1: badge count (optional: default 0)
-    [[ "$1" == "" ]] && badge_count=0 || badge_count="$1"
+    badge_count="${1:-0}"
 
     jshon -Q -n object                    \
         -s 'close-tab' -i 'command'       \
@@ -123,15 +129,14 @@ dodona_close_testcase() {
     jshon -Q -n object -s 'close-testcase' -i 'command'
 }
 
-dodona_start_testcase_code_message() {
+dodona_start_testcase_markdown_message() {
     # arg1: description
-    description=$(echo -e "$1")
 
-    jshon -Q -n object                         \
-        -s 'start-testcase' -i 'command'       \
-        -n object                              \
-            -s 'code' -i 'format'              \
-            -s 'student' -i 'permission'       \
-            -s "$description" -i 'description' \
+    jshon -Q -n object                   \
+        -s 'start-testcase' -i 'command' \
+        -n object                        \
+            -s 'markdown' -i 'format'    \
+            -s 'student' -i 'permission' \
+            -s "$1" -i 'description'     \
         -i 'description'
 }
