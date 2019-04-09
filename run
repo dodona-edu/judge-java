@@ -1,6 +1,6 @@
 #!/bin/bash
 
-debug() { echo -n "$@" >&2; date >&2; }
+debug() { echo -n "$@ - " >&2; date >&2; }
 debug start
 
 set -o pipefail -e
@@ -10,7 +10,7 @@ config="$(mktemp)"      # configuration
 result="$(mktemp)"      # result json
 compilation="$(mktemp)" # output of compilation
 execution="$(mktemp)"   # output of execution
-mkdir "/tmp/build"  # compilation directory
+mkdir "/tmp/build"      # compilation directory
 
 trap "rm -rf '$config' '$result' '$compilation' '$execution' '/tmp/build'" EXIT
 
@@ -33,131 +33,106 @@ memory_limit="$(( memory_limit * 9 / 10000 ))"
 # Other configuration parameters.
 allow_compilation_warnings="$(jshon -Q -e 'allow_compilation_warnings' -u < "$config" || echo 'true')"
 
-# Record time
-start_time="$(date +"%s")"
+############################## [ Helper functions ] ############################
+# Import json helper functions.
+source $judge/dodona-json
 
-# User friendly compilation errors
-pretty_compilation_errors() {
-    # Test the name of the class.
-    wrong_class=$(echo $compile_err | grep -c "should be declared in a file named")
-    if [ "$wrong_class" -eq "1" ]; then
-        expect_class_name=$(echo $compile_err | egrep -o "^\w+.java" | sed "s/.java//g")
-        student_class_name=$(echo $compile_err | egrep -o "public class \w+" | sed "s/public class //g")
-        echo "De ingediende klasse heeft een foute naam. De klasse hoort als naam \"$expect_class_name\" te hebben, jouw klasse heeft als naam \"$student_class_name\"."
-    fi
-}
-
-# Compilation parsing
 compilation_error_count() {
-    echo "$1" | egrep -o "[0-9]+ errors?$" | sed "s/[^0-9]//g"
+    echo "$1" | egrep -o "[0-9]+ errors?$" | sed "s/[^0-9]//g" || echo "0"
 }
 
 compilation_warning_count() {
-    echo "$1" | egrep -o "[0-9]+ warnings?$" | sed "s/[^0-9]//g"
+    echo "$1" | egrep -o "[0-9]+ warnings?$" | sed "s/[^0-9]//g" || echo "0"
 }
 
-# Compilation json
+parse_compilation_error() {
+    dodona_start_context
+    dodona_start_testcase_code_message "$1"
+    dodona_close_failed_testcase
+    dodona_close_failed_context
+}
+
+parse_compilation_errors() {
+    # arg1 raw compilation output
+
+    # Processes the compilation errors, store them in an array, after which the
+    # invidual errors/warnings are processed.
+    compile_errs=()
+    compile_err=""
+    while IFS="\n" read -r line; do
+        new_case=$(echo "$line" | egrep -c "^$filename:[0-9]+:" || true)
+
+        if [[ "$new_case" == "0" || $compile_err == "" ]]; then
+            compile_err+="$line\n"
+            continue
+        fi
+
+        compile_errs+=("$compile_err")
+        compile_err="$line\n"
+    done <<< "$1"
+
+    # Last error/warning will end with "x errors/y warnings; remove this part."
+    compile_err=$(echo "$compile_err" | sed "s/[0-9]\+ warnings\?//g")
+    compile_err=$(echo "$compile_err" | sed "s/[0-9]\+ errors\?//g")
+    compile_errs+=("$compile_err")
+
+    # The errors and warnings could not be processed in the previous while
+    # loop due to problems with jshon/stdin and read.
+    for i in "${compile_errs[@]}"; do
+        parse_compilation_error "$i"
+    done
+}
+
 compilation_error_in_submission() {
-    compile_err=$(cat $1)
+    compile_log=$(cat $1)
 
-    # Get the amount of errors/warnings as a number.
-    compile_err_count=$(compilation_error_count "$compile_err")
-    compile_warn_count=$(compilation_warning_count "$compile_err")
+    # Parse the amount of compilation errors and warnings.
+    compile_err_count=$(compilation_error_count "$compile_log")
+    compile_warn_count=$(compilation_warning_count "$compile_log")
+    compile_errwarn_sum="$((compile_err_count + compile_warn_count))"
 
-    # Get the pretty feedback.
-    # TODO: Maybe create a new message for every parsed item instead of simply
-    # TODO: concatenating everything in 1 message.
-    compile_err_pretty=$(pretty_compilation_errors "$compile_err")
+    # Get the correct noun.
+    [[ "$compile_err_count" == "1" ]] && compile_err_noun="fout" || compile_err_noun="fouten"
+    [[ "$compile_warn_count" == "1" ]] && compile_warn_noun="waarschuwing" || compile_warn_noun="waarschuwingen"
 
-    # Strip the amount of errors/warnings since we're already displaying that
-    # somewhere else.
-    compile_err=$(echo "$compile_err" | sed "s/[0-9]\+ \(error\|warning\)s\?$//g")
+    dodona_start_judgement
+    dodona_start_tab "Compiler"
+    dodona_append_plain_message "Je code kon niet worden gecompileerd en bijgevolg niet worden uitgevoerd. De compiler rapporteerde $compile_err_count $compile_err_noun en $compile_warn_count $compile_warn_noun."
 
-    if [ "$compile_err_count" -eq "1" ]; then
-        compile_err_word="fout"
-    else
-        compile_err_word="fouten"
-    fi
+    parse_compilation_errors "$compile_log"
 
-    if [ "$compile_warn_count" -eq "1" ]; then
-        compile_warn_word="waarschuwing"
-    else
-        compile_warn_word="waarschuwingen"
-    fi
-
-    compile_msg="Je oplossing kon niet worden gecompileerd, de compiler rapporteerde $compile_err_count $compile_err_word en $compile_warn_count $compile_warn_word:"
-
-    jshon -Q -n object                                                    \
-        -n false -i 'accepted'                                            \
-        -s 'compilation error' -i 'status'                                \
-        -s "$compile_err_count $compile_err_word" -i 'description'        \
-        -n array                                                          \
-            -n object                                                     \
-                -s 'Compiler' -i 'description'                            \
-                -n array                                                  \
-                    -n object                                             \
-                        -n false -i 'accepted'                            \
-                        -n array                                          \
-                            -n object                                     \
-                                -s 'code' -i 'format'                     \
-                                -s "$compile_err" -i 'description'        \
-                            -i 0                                          \
-                            -n object                                     \
-                                -s 'code' -i 'format'                     \
-                                -s "$compile_err_pretty" -i 'description' \
-                            -i 0                                          \
-                            -n object                                     \
-                                -s 'plain' -i 'format'                    \
-                                -s "$compile_msg" -i 'description'        \
-                            -i 0                                          \
-                        -i 'messages'                                     \
-                    -i 0                                                  \
-                -i 'groups'                                               \
-            -i 0                                                          \
-        -i 'groups'
+    dodona_close_tab $compile_errwarn_sum
+    dodona_close_judgement_compilation_error "$compile_err_count $compile_err_noun"
 }
 
 compilation_error_in_tests() {
-    compile_err=$(cat $1)
-    description="De tests van deze opgave bevatten een fout, contacteer de lesgever."
+    compile_log=$(cat $1)
 
-    jshon -Q -n object                                             \
-        -n false -i 'accepted'                                     \
-        -s 'compilation error' -i 'status'                         \
-        -s "in tests" -i 'description'                             \
-        -n array                                                   \
-            -n object                                              \
-                -s 'Compiler' -i 'description'                     \
-                -n array                                           \
-                    -n object                                      \
-                        -n false -i 'accepted'                     \
-                        -n array                                   \
-                            -n object                              \
-                                -s 'code' -i 'format'              \
-                                -s 'staff' -i 'permission'         \
-                                -s "$compile_err" -i 'description' \
-                            -i 0                                   \
-                            -n object                              \
-                                -s 'plain' -i 'format'             \
-                                -s "$description" -i 'description' \
-                            -i 0                                   \
-                        -i 'messages'                              \
-                    -i 0                                           \
-                -i 'groups'                                        \
-            -i 0                                                   \
-        -i 'groups'
+    # Parse the amount of compilation errors and warnings.
+    compile_err_count=$(compilation_error_count "$compile_log")
+    compile_warn_count=$(compilation_warning_count "$compile_log")
+    compile_errwarn_sum="$((compile_err_count + compile_warn_count))"
+
+    # Get the correct noun.
+    [[ "$compile_err_count" == "1" ]] && compile_err_noun="fout" || compile_err_noun="fouten"
+    [[ "$compile_warn_count" == "1" ]] && compile_warn_noun="waarschuwing" || compile_warn_noun="waarschuwingen"
+
+    # dodona_start_judgement
+    # dodona_start_tab "Compiler"
+    # dodona_append_plain_message "Je code kon niet worden gecompileerd en bijgevolg niet worden uitgevoerd. \
+    # De compiler rapporteerde $compile_err_count $compile_err_noun en $compile_warn_count $compile_warn_noun."
+
+    parse_compilation_errors "$compile_log"
+
+    # dodona_close_tab $compile_errwarn_sum
+    # dodona_close_judgement_compilation_error 'a'
 }
 
-add_compilation_description() {
-    jshon -Q                                 \
-        -e 'groups' -e 0                     \
-            -e 'groups' -e 0                 \
-                -n object                    \
-                    -s 'plain' -i 'format'    \
-                    -s "$1" -i 'description' \
-                -i 'description'             \
-        -p -p -p -p
-}
+
+################################# [ Start run ] ################################
+
+# Record time
+start_time="$(date +"%s")"
 
 debug after init
 
@@ -186,12 +161,7 @@ compile_opts="-Xlint:all"
 [ "$allow_compilation_warnings" == 'true' ] || compile_opts+=' -Werror'
 
 if ! javac -cp ".:${worklibs}" ${compile_opts} "$filename" > "$compilation" 2>&1; then
-    compilation_error_in_submission "$compilation" \
-    | if grep -q '^package' "$filename"; then
-        add_compilation_description "Are you sure the submitted class is in the default package?"
-      else
-        cat
-    fi
+    compilation_error_in_submission "$compilation"
     exit 0
 fi
 

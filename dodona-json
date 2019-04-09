@@ -1,0 +1,109 @@
+#!/bin/bash
+
+###################### [ Partial output helper functions ] #####################
+
+### [ Contexts ]
+dodona_close_failed_context() {
+    jshon -Q -n object                  \
+        -s 'close-context' -i 'command' \
+        -n 'false' -i 'accepted'
+}
+
+dodona_close_context() {
+    jshon -Q -n object -s 'close-context' -i 'command'
+}
+
+dodona_start_context() {
+    jshon -n object -s 'start-context' -i 'command'
+}
+
+### [ Judgement ]
+dodona_close_judgement_compilation_error() {
+    # arg1: description
+
+    jshon -Q -n object                       \
+        -s 'close-judgement' -i 'command'    \
+        -n 'false' -i 'accepted'             \
+        -n object                            \
+            -s 'compilation error' -i 'enum' \
+            -s "$1" -i 'human'               \
+        -i 'status'
+}
+
+dodona_close_judgement() {
+    jshon -Q -n object -s 'close-judgement' -i 'command'
+}
+
+dodona_start_judgement() {
+    jshon -Q -n object -s 'start-judgement' -i 'command'
+}
+
+### [ Messages ]
+dodona_append_plain_message() {
+    # arg1: message contents
+    dodona_append_message 'plain' 'student' "$1"
+}
+
+dodona_append_message() {
+    # arg1: format
+    # arg2: permission
+    # arg3: message contents
+
+    jshon -Q -n object                   \
+        -s 'append-message' -i 'command' \
+        -n object                        \
+            -s "$1" -i 'format'          \
+            -s "$2" -i 'permission'      \
+            -s "$3" -i 'description'     \
+        -i 'message'
+}
+
+### [ Tabs ]
+dodona_close_tab() {
+    # arg1: badge count (optional: default 0)
+    [[ "$1" == "" ]] && badge_count=0 || badge_count="$1"
+
+    jshon -Q -n object                    \
+        -s 'close-tab' -i 'command'       \
+        -n $badge_count -i 'badgeCount'
+}
+
+dodona_start_hidden_tab() {
+    # arg1: title
+    jshon -Q -n object              \
+        -s 'start-tab' -i 'command' \
+        -n 'true' -i 'hidden'       \
+        -s "$1" -i 'title'
+}
+
+dodona_start_tab() {
+    # arg1: title
+    jshon -Q -n object              \
+        -s 'start-tab' -i 'command' \
+        -n 'false' -i 'hidden'      \
+        -s "$1" -i 'title'
+}
+
+### [Testcases]
+dodona_close_failed_testcase() {
+    jshon -Q -n object                   \
+        -s 'close-testcase' -i 'command' \
+        -n 'false' -i 'accepted'
+}
+
+dodona_close_testcase() {
+    jshon -Q -n object -s 'close-testcase' -i 'command'
+}
+
+dodona_start_testcase_code_message() {
+    # arg1: description
+    description=$(echo -e "$1")
+
+    jshon -Q -n object                         \
+        -s 'start-testcase' -i 'command'       \
+        -n object                              \
+            -s 'code' -i 'format'              \
+            -s 'student' -i 'permission'       \
+            -s "$description" -i 'description' \
+        -i 'description'
+}
