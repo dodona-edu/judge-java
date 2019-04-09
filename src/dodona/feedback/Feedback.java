@@ -25,13 +25,13 @@ public class Feedback extends Group<Tab> {
         long executed = children().mapToLong(t -> t.children().count()).sum();
         switch(status) {
             case TIME_LIMIT_EXCEEDED:
-                this.description = executed + " " + pluralize(executed, "test", "tests") + " uitgevoerd";
+                this.description = executed + " " + pluralize(executed, "test", "testen") + " uitgevoerd";
                 break;
             case CORRECT:
-                this.description = (executed - failed) + " " + pluralize(executed - failed, "test", "tests") + " geslaagd";
+                this.description = (executed - failed) + " " + pluralize(executed - failed, "test", "testen") + " geslaagd";
                 break;
             default:
-                this.description = failed + " " + pluralize(failed, "test", "tests") + " mislukt";
+                this.description = failed + " " + pluralize(failed, "test", "testen") + " gefaald";
 
                 break;
         }
