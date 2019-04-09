@@ -2,6 +2,34 @@
 
 ###################### [ Partial output helper functions ] #####################
 
+### [ Annotations ]
+dodona_annotate_code_error() {
+    # arg1: row
+    # arg2: column
+    # arg3: annotation text
+    dodona_annotate_code 'error' "$1" "$2" "$3"
+}
+
+dodona_annotate_code_warning() {
+    # arg1: row
+    # arg2: column
+    # arg3: annotation text
+    dodona_annotate_code 'warning' "$1" "$2" "$3"
+}
+
+dodona_annotate_code() {
+    # arg1: type
+    # arg2: row
+    # arg3: column
+    # arg4: annotation text
+    jshon -Q -n object                \
+        -s 'annotate-code' -i command \
+        -n "$3" -i 'column'           \
+        -n "$2" -i 'row'              \
+        -s "$1" -i 'type'             \
+        -s "$4" -i 'text'
+}
+
 ### [ Contexts ]
 dodona_close_failed_context() {
     jshon -Q -n object                  \
