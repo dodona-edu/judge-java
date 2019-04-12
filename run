@@ -30,6 +30,9 @@ time_limit="$(( time_limit - 10 ))"
 memory_limit="$(jshon -e 'memory_limit' -u < "$config")"
 memory_limit="$(( memory_limit * 9 / 10000 ))"
 
+# Other configuration parameters.
+allow_compilation_warnings="$(jshon -Q -e 'allow_compilation_warnings' -u < "$config" || echo 'true')"
+
 # Record time
 start_time="$(date +"%s")"
 
@@ -91,7 +94,10 @@ debug compiled workdir
 cat "$(jshon -e 'source' -u < "$config")" > "$filename"
 
 # Compiling the user code
-if ! javac -cp ".:${worklibs}" -Xlint:all "$filename" > "$compilation" 2>&1; then
+compile_opts="-Xlint:all"
+[ "$allow_compilation_warnings" == 'true' ] || compile_opts+=' -Werror'
+
+if ! javac -cp ".:${worklibs}" ${compile_opts} "$filename" > "$compilation" 2>&1; then
     compilation_error "in submitted code" "$compilation" \
     | if grep -q '^package' "$filename"; then
         add_compilation_description "Are you sure the submitted class is in the default package?"
