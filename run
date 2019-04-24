@@ -1,6 +1,6 @@
 #!/bin/bash
 
-debug() { echo -n "$@" >&2; date >&2; }
+debug() { echo -n "$@" " - " >&2; date >&2; }
 debug start
 
 set -o pipefail -e
@@ -10,7 +10,7 @@ config="$(mktemp)"      # configuration
 result="$(mktemp)"      # result json
 compilation="$(mktemp)" # output of compilation
 execution="$(mktemp)"   # output of execution
-mkdir "/tmp/build"  # compilation directory
+mkdir "/tmp/build"      # compilation directory
 
 trap "rm -rf '$config' '$result' '$compilation' '$execution' '/tmp/build'" EXIT
 
@@ -33,43 +33,179 @@ memory_limit="$(( memory_limit * 9 / 10000 ))"
 # Other configuration parameters.
 allow_compilation_warnings="$(jshon -Q -e 'allow_compilation_warnings' -u < "$config" || echo 'true')"
 
+############################## [ Helper functions ] ############################
+# Import json helper functions.
+source $judge/dodona-json
+
+compilation_error_count() {
+    tail -n2 | sed -n 's/^\([0-9]\+\) errors\?$/\1/p'
+}
+
+compilation_warning_count() {
+    tail -n2 | sed -n 's/^\([0-9]\+\) warnings\?$/\1/p'
+}
+
+explain_compilation_error() {
+    case "$1" in
+        *"should be declared in a file named"*)
+            # Wrong class name.
+            expected_class_name="${filename%.java}"
+            echo "De naam van je klasse hoort \"$expected_class_name\" te zijn."
+            ;;
+        *"cannot find symbol"*)
+            # Cannot find symbol - forgotten import.
+            class_name=$(echo "$1" | grep -o "symbol:\s*class \S\+" | sed "s/.*class \(\S\+\)\\\n/\1/" || true)
+            [ -z "$class_name" ] || echo "Je probeert een onbekende klasse \`$class_name\` te gebruiken. Mogelijks ben je de noodzakelijke \`import\` vergeten."
+            ;;
+        *"assign a value to final variable"*)
+            # Assignment to final variable.
+            variable_name=$(echo "$1" | grep -o "final variable \S\+" | sed "s/final variable //" | sed "s/\\\n//")
+            echo "Variabelen die als \`final\` zijn gedeclareerd, kunnen niet meer worden aangepast eens ze een waarde hebben. Verwijder het \`final\` keyword bij de variabele \"$variable_name\" om dit op te lossen."
+            ;;
+    esac
+}
+
+explain_compilation_warning() {
+    case "$1" in
+        *"found raw type"*)
+            echo "Het is aangeraden een type mee te geven aan generieke klassen."
+            ;;
+    esac
+}
+
+parse_compilation_error_staff() {
+    # arg1: 1 compiler log
+
+    dodona_start_context
+
+    # Start the case.
+    dodona_start_testcase_markdown_message "Compilatiefout"
+
+    # Append the compilation log, only visible for staff.
+    dodona_append_code_message_staff "$1"
+
+    dodona_close_failed_testcase
+    dodona_close_failed_context
+}
+
+parse_compilation_error_student() {
+    # arg1: 1 compiler log
+    dodona_start_context
+
+    # Determine the kind of compilation message.
+    log_kind=$(echo "$1" | grep -o "^$filename:[0-9]\+: warning:" | grep -o "warning" || echo 'error')
+
+    # Try to explain the compilation message.
+    if [ "$log_kind" == 'error' ]; then
+        explanation=$(explain_compilation_error "$1")
+    else
+        explanation=$(explain_compilation_warning "$1")
+    fi
+
+    # Start the case, add the explanation message if it exists.
+    [ "$log_kind" == 'error' ] && testcase_msg="Compilatiefout" || testcase_msg="Compilatiewaarschuwing"
+    [ -z "$explanation" ] || testcase_msg+=": $explanation"
+    dodona_start_testcase_markdown_message "$testcase_msg"
+
+    # Append the compilation output.
+    dodona_append_code_message "$1"
+
+    # Get the code annotation information.
+    annotation_column=$(echo "$1" | grep -o "\s*\^" | wc -c)
+    annotation_column=$((annotation_column - 2))
+    annotation_row=$(echo "$1" | grep -o "^$filename:[0-9]\+:" | sed "s/^$filename:\([0-9]\+\):/\1/")
+    annotation_row=$((annotation_row - 1))
+
+    if [ -z "$explanation" ]; then
+        # Insert the first line of the compilation log.
+        annotation_text=$(echo "$1" | sed "s/.*: error://" | sed "s/.*: warning://" | head -n 1)
+    else
+        # Strip the ` from markdown explanations.
+        annotation_text=$(echo "$explanation" | tr -d '\`')
+    fi
+
+    # Annotate the code accordingly.
+    dodona_annotate_code "$log_kind" "$annotation_row" "$annotation_column" "$annotation_text"
+
+    dodona_close_failed_testcase
+    dodona_close_failed_context
+}
+
+parse_compilation_errors() {
+    # arg1: permission
+    # reads log from stdin
+
+    # Loop over the compile log and process each message individually.
+    compile_err=""
+    while IFS= read -r line; do
+        if echo "$line" | egrep -q "^$filename:[0-9]+:"; then
+            if [ -n "$compile_err" ]; then
+                if [ "$1" = 'student' ]; then
+                    parse_compilation_error_student "$compile_err" </dev/zero
+                else
+                    parse_compilation_error_staff "$compile_err" </dev/zero
+                fi
+            fi
+            compile_err="$line"
+        else
+            compile_err="$(printf '%s\n%s' "$compile_err" "$line")"
+        fi
+    done
+
+    # Last error/warning will end with "x errors/y warnings; remove this part."
+    compile_err=$(echo "$compile_err" | sed "s/[0-9]\+ warnings\?//g")
+    compile_err=$(echo "$compile_err" | sed "s/[0-9]\+ errors\?//g")
+
+    # Process the last error/warning.
+    if [ "$1" == 'student' ]; then
+        parse_compilation_error_student "$compile_err" </dev/zero
+    else
+        parse_compilation_error_staff "$compile_err" </dev/zero
+    fi
+}
+
+compilation_error_in_submission() {
+    # Parse the amount of compilation errors and warnings.
+    compile_err_count=$(compilation_error_count < "$1")
+    compile_warn_count=$(compilation_warning_count < "$1")
+    compile_errwarn_sum="$((compile_err_count + compile_warn_count))"
+
+    # Get the correct noun.
+    [ "$compile_err_count" == "1" ] && compile_err_noun="fout" || compile_err_noun="fouten"
+    [ "$compile_warn_count" == "1" ] && compile_warn_noun="waarschuwing" || compile_warn_noun="waarschuwingen"
+
+    # Build the compilation message.
+    compile_message=""
+    [ "$compile_err_count" == "" ] || compile_message="$compile_err_count $compile_err_noun"
+    [ "$compile_err_count" != "" ] && [ "$compile_warn_count" != "" ] && compile_message+=" en "
+    [ "$compile_warn_count" == "" ] || compile_message+="$compile_warn_count $compile_warn_noun"
+
+    dodona_start_judgement
+    dodona_start_tab "Compiler"
+    dodona_append_html_message "<div class=\"callout callout-info\">Je code kon niet worden gecompileerd en bijgevolg niet worden uitgevoerd. De compiler rapporteerde $compile_message.</div>"
+
+    parse_compilation_errors 'student' < "$1"
+
+    dodona_close_tab $compile_errwarn_sum
+    dodona_close_judgement_compilation_error "$compile_err_count $compile_err_noun"
+}
+
+compilation_error_in_tests() {
+    dodona_start_judgement
+    dodona_start_tab "Compiler"
+    dodona_append_html_message "<div class=\"callout callout-info\">Er ging iets mis tijdens het compileren van de testen voor deze oefening. Contacteer je lesgever.</div>"
+
+    parse_compilation_errors 'staff' < "$1"
+
+    dodona_close_tab
+    dodona_close_judgement_compilation_error "in de testen"
+}
+
+
+################################# [ Start run ] ################################
+
 # Record time
 start_time="$(date +"%s")"
-
-# Compilation json
-compilation_error() {
-    jshon -Q -n object                                          \
-        -n false -i 'accepted'                                  \
-        -s 'compilation error' -i 'status'                      \
-        -s "$1" -i 'description'                                \
-        -n array                                                \
-            -n object                                           \
-                -s 'Compiler' -i 'description'                  \
-                -n array                                        \
-                    -n object                                   \
-                        -n false -i 'accepted'                  \
-                        -n array                                \
-                            -n object                           \
-                                -s 'code' -i 'format'           \
-                                -s "$(cat $2)" -i 'description' \
-                            -i 0                                \
-                        -i 'messages'                           \
-                    -i 0                                        \
-                -i 'groups'                                     \
-            -i 0                                                \
-        -i 'groups'
-}
-
-add_compilation_description() {
-    jshon -Q                                 \
-        -e 'groups' -e 0                     \
-            -e 'groups' -e 0                 \
-                -n object                    \
-                    -s 'plain' -i 'format'    \
-                    -s "$1" -i 'description' \
-                -i 'description'             \
-        -p -p -p -p
-}
 
 debug after init
 
@@ -84,7 +220,7 @@ debug compiled judge
 
 # Compiling the workdir given code
 if ! find . -name '*.java' | xargs --no-run-if-empty javac -cp ".:${worklibs}:${testlibs}" -d . -sourcepath . > "$compilation" 2>&1; then
-    compilation_error "in workdir" <(sed 's_.*/\([^/]*.java\)_\1_' "$compilation")
+    compilation_error_in_tests <(sed 's_.*/\([^/]*.java\)_\1_' "$compilation")
     exit 0
 fi
 
@@ -98,12 +234,7 @@ compile_opts="-Xlint:all"
 [ "$allow_compilation_warnings" == 'true' ] || compile_opts+=' -Werror'
 
 if ! javac -cp ".:${worklibs}" ${compile_opts} "$filename" > "$compilation" 2>&1; then
-    compilation_error "in submitted code" "$compilation" \
-    | if grep -q '^package' "$filename"; then
-        add_compilation_description "Are you sure the submitted class is in the default package?"
-      else
-        cat
-    fi
+    compilation_error_in_submission "$compilation"
     exit 0
 fi
 
@@ -111,7 +242,7 @@ debug compiled user code
 
 # Compiling the tests
 if ! find "$resources" -name '*.java' | xargs javac -cp ".:${resources}:${worklibs}:${testlibs}:judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
-    compilation_error "in tests" <(sed 's_.*/\([^/]*.java\)_\1_' "$compilation")
+    compilation_error_in_tests <(sed 's_.*/\([^/]*.java\)_\1_' "$compilation")
     exit 0
 fi
 
