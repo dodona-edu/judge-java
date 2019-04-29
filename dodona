@@ -1,0 +1,205 @@
+#!/bin/sh
+
+set -o errexit
+
+command="$1"
+shift
+
+result="$(jshon -Q -n object -s "$command" -i command)"
+apply() { result="$(printf '%s' "$result" | "$@")" ; }
+
+crash() {
+	echo "$@" >&2
+	exit 1
+}
+
+check_status() {
+	case "$1" in
+	"internal error")    return ;;
+	"compilation error") return ;;
+	"runtime error")     return ;;
+	"wrong")             return ;;
+	"correct")           return ;;
+	*)                   crash invalid status "$1" ;;
+	esac
+}
+
+check_permission() {
+	case "$1" in
+	"staff")   return ;;
+	"student") return ;;
+	"zeus")    return ;;
+	*)         crash invalid permission "$1" ;;
+	esac
+}
+
+check_type() {
+	case "$1" in
+	"error")   return ;;
+	"warning") return ;;
+	"info")    return ;;
+	*)         crash invalid permission "$1" ;;
+	esac
+}
+
+case "$command" in
+start-judgement)
+	;;
+start-tab)
+	while getopts t:h f; do
+		case "$f" in
+		t)  title="$OPTARG" ;;
+		h)  apply jshon -n true -i 'hidden' ;;
+		\?) exit 1 ;;
+		esac
+	done
+	[ -z "$title" ] && crash tab requires title
+	apply jshon -s "$title" -i 'title'
+	;;
+start-context)
+	while getopts f:p:d: f; do
+		case "$f" in
+		d)  description="$OPTARG" ;;
+		f)  format="$OPTARG" ;;
+		p)  permission="$OPTARG" ;;
+		\?) exit 1 ;;
+		esac
+	done
+	if [ -n "$description" ]; then
+		apply jshon -Q -n object -s "$description" -i description -i description
+		[ -n "$format" ] && apply jshon -Q -e 'description' -s "$format" -i format -i description
+		if [ -n "$permission" ]; then
+			check_permission "$permission"
+			apply jshon -Q -e 'description' -s "$permission" -i permission -i description
+		fi
+	fi
+	;;
+start-testcase)
+	while getopts f:p:d: f; do
+		case "$f" in
+		d)  description="$OPTARG" ;;
+		f)  format="$OPTARG" ;;
+		p)  permission="$OPTARG" ;;
+		\?) exit 1 ;;
+		esac
+	done
+	[ -z "$description" ] && crash testcase requires description
+	apply jshon -Q -n object -s "$description" -i description -i description
+	[ -n "$format" ] && apply jshon -Q -e 'description' -s "$format" -i format -i description
+	if [ -n "$permission" ]; then
+		check_permission "$permission"
+		apply jshon -Q -e 'description' -s "$permission" -i permission -i description
+	fi
+	;;
+start-test)
+	while getopts e:d:f:p: f; do
+		case "$f" in
+		e)  expected="$OPTARG" ;;
+		d)  description="$OPTARG" ;;
+		f)  format="$OPTARG" ;;
+		p)  permission="$OPTARG" ;;
+		\?) exit 1 ;;
+		esac
+	done
+	[ -z "$expected" ] && crash test requires expected
+	apply jshon -Q -s "$expected" -i expected
+	if [ -n "$description" ]; then
+		apply jshon -Q -n object -s "$description" -i description -i description
+		[ -n "$format" ] && apply jshon -Q -e 'description' -s "$format" -i format -i description
+		if [ -n "$permission" ]; then
+			check_permission "$permission"
+			apply jshon -Q -e 'description' -s "$permission" -i permission -i description
+		fi
+	fi
+	;;
+append-message)
+	while getopts d:f:p: f; do
+		case "$f" in
+		d)  description="$OPTARG" ;;
+		f)  format="$OPTARG" ;;
+		p)  permission="$OPTARG" ;;
+		\?) exit 1 ;;
+		esac
+	done
+	[ -z "$description" ] && crash message requires description
+	apply jshon -Q -n object -s "$description" -i description -i message
+	[ -n "$format" ] && apply jshon -Q -e message -s "$format" -i format -i message
+	if [ -n "$permission" ]; then
+		check_permission "$permission"
+		apply jshon -Q -e message -s "$permission" -i permission -i message
+	fi
+	;;
+annotate-code)
+	while getopts r:c:m:t:R:C: f; do
+		case "$f" in
+		r)  row="$OPTARG" ;;
+		c)  column="$OPTARG" ;;
+		m)  text="$OPTARG" ;;
+		t)  type="$OPTARG" ;;
+		R)  rows="$OPTARG" ;;
+		C)  columns="$OPTARG" ;;
+		\?) exit 1 ;;
+		esac
+	done
+	[ -z "$row" -o -z "$text" ] && crash annotation requires row and text
+	apply jshon -Q -s "$row" -i row
+	apply jshon -Q -s "$text" -i text
+	[ -n "$column" ] && apply jshon -Q -s "$column" -i column
+	[ -n "$type" ] && check_type "$type" && apply jshon -Q -s "$type" -i type
+	[ -n "$rows" ] && apply jshon -Q -s "$rows" -i rows
+	[ -n "$columns" ] && apply jshon -Q -s "$columns" -i columns
+	;;
+close-test)
+	while getopts g:s:aA f; do
+		case "$f" in
+		g)  generated="$OPTARG" ;;
+		e)  enum="$OPTARG" ;;
+		h)  human="$OPTARG" ;;
+		a)  apply jshon -Q -n true -i accepted ;;
+		A)  apply jshon -Q -n false -i accepted ;;
+		\?) exit 1 ;;
+		esac
+	done
+	[ -z "$generated" -o -z "$enum" -o -z "$human" ] && crash closing test requires generated, enum and human
+	apply jshon -Q -s "$generated" -i generated
+	check_status "$enum"
+	apply jshon -Q -n object -s "$enum" -i enum -i status
+	apply jshon -Q -e status -s "$human" -i human -i status
+	;;
+close-testcase|close-context)
+	while getopts aA f; do
+		case "$f" in
+		a)  apply jshon -Q -n true -i accepted ;;
+		A)  apply jshon -Q -n false -i accepted ;;
+		\?) exit 1 ;;
+		esac
+	done
+	;;
+close-tab)
+	while getopts b: f; do
+		case "$f" in
+		b)  apply jshon -Q -n "$OPTARG" -i badgeCount ;;
+		\?) exit 1 ;;
+		esac
+	done
+	;;
+close-judgement)
+	while getopts e:h:aA f; do
+		case "$f" in
+		e)  enum="$OPTARG" ;;
+		h)  human="$OPTARG" ;;
+		a)  apply jshon -Q -n true -i accepted ;;
+		A)  apply jshon -Q -n false -i accepted ;;
+		\?) exit 1 ;;
+		esac
+	done
+	if [ -n "$enum" ]; then
+		[ -z "$human" ] && crash status enum requires also human
+		check_status "$enum"
+		apply jshon -Q -n object -s "$enum" -i enum -i status
+		apply jshon -Q -e status -s "$human" -i human -i status
+	fi
+	;;
+esac
+
+printf '%s' "$result"
