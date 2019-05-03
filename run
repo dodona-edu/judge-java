@@ -1,8 +1,5 @@
 #!/bin/bash
 
-debug() { echo -n "$@" " - " >&2; date >&2; }
-debug start
-
 set -o pipefail -e
 
 # Temp files
@@ -155,69 +152,69 @@ parse_compilation_errors() {
     fi
 }
 
-compilation_error_in_submission() {
-    # Parse the amount of compilation errors and warnings.
-    compile_err_count="$(compilation_error_count < "$1")"
-    compile_err_count="${compile_err_count:-0}"
-    compile_warn_count="$(compilation_warning_count < "$1")"
-    compile_warn_count="${compile_warn_count:-0}"
-    compile_errwarn_sum="$((compile_err_count + compile_warn_count))"
+compilation_failed() {
+    compilation="$1"
+    callout="$2"
+    human="$3"
+    target="$4"
 
-    # Get the correct noun.
-    [ "$compile_err_count" -eq 1 ] && compile_err_noun="fout" || compile_err_noun="fouten"
-    [ "$compile_warn_count" -eq 1 ] && compile_warn_noun="waarschuwing" || compile_warn_noun="waarschuwingen"
+    # Counting compilation errors and warning.
+    compile_error_count="$(compilation_error_count < "$compilation")"
+    compile_error_count="${compile_error_count:-0}"
+    compile_warning_count="$(compilation_warning_count < "$compilation")"
+    compile_warning_count="${compile_warning_count:-0}"
 
-    # Build the compilation message.
-    compile_message=""
-    [ "$compile_err_count" -eq 0 ] || compile_message="$compile_err_count $compile_err_noun"
-    [ "$compile_err_count" -ne 0 ] && [ "$compile_warn_count" -ne 0 ] && compile_message+=" en "
-    [ "$compile_warn_count" -eq 0 ] || compile_message+="$compile_warn_count $compile_warn_noun"
+    # Build the compilation counts message.
+    case "$compile_error_count" in
+    0) described_error_count="" ;;
+    1) described_error_count="1 fout" ;;
+    *) described_error_count="$compile_error_count fouten" ;;
+    esac
 
-    dodona start-judgement
-    dodona start-tab -t 'Compiler'
-    dodona append-message -f callout -d "Je code kon niet worden gecompileerd en bijgevolg niet worden uitgevoerd. De compiler rapporteerde $compile_message."
+    case "$compile_warning_count" in
+    0) described_warning_count="" ;;
+    1) described_warning_count="1 waarschuwing" ;;
+    *) described_warning_count="$compile_error_count waarschuwingen" ;;
+    esac
 
-    parse_compilation_errors 'student' < "$1"
+    [ "$compile_error_count" -ne 0 -a "$compile_warning_count" -ne 0 ] \
+        && described_both_count="$described_error_count en $described_warning_count" \
+        || described_both_count="$described_error_count$described_warning_count"
 
-    dodona close-tab -b "$compile_errwarn_sum"
-    dodona close-judgement -A -e 'compilation error' -h "$compile_err_count $compile_err_noun"
+    dodona append-message -f callout -d "$(printf "$callout" "$described_both_count")"
+
+    # Append a (failed) testcase per compilation error
+    sed 's_.*/\([^/]*.java\)_\1_' "$compilation" | parse_compilation_errors "$target"
+
+    dodona close-tab # -b "$compile_errwarn_sum" TODO https://github.ugent.be/dodona/dodona/pull/1051
+    dodona close-judgement -A -e 'compilation error' -h "$(printf "$human" "$described_error_count")"
+    exit 0
 }
-
-compilation_error_in_tests() {
-    dodona start-judgement
-    dodona start-tab -t 'Compiler'
-    dodona append-message -f callout -d "Er ging iets mis tijdens het compileren van de testen voor deze oefening. Contacteer je lesgever."
-
-    parse_compilation_errors 'staff' < "$1"
-
-    dodona close-tab
-    dodona close-judgement -A -e 'compilation error' -h 'Fout in de testen'
-}
-
 
 ################################# [ Start run ] ################################
 
-# Record time
-start_time="$(date +"%s")"
+dodona start-judgement
 
-debug after init
+dodona start-tab -h -t 'Compiler'
 
 # Compiling judge into "build" and getting a jar in the workdir
 find "$judge/src" -name '*.java' \
     | xargs javac -classpath "$judge/lib/*:/tmp/build" -d /tmp/build -sourcepath "$judge/src"
 jar -cf "judge.jar" -C /tmp/build .
 testlibs="$(find "$judge/lib" "$resources" -name '*.jar' | xargs echo | tr ' ' ':')"
-worklibs="$(find "$workdir" -name '*.jar' | xargs echo | tr ' ' ':')"
+worklibs="$([ -d "$workdir" ] && find "$workdir" -name '*.jar' | xargs echo | tr ' ' ':')"
 
-debug compiled judge
+compilation_error() {
+    compilation_output="$1"
+}
 
 # Compiling the workdir given code
 if ! find . -name '*.java' | xargs --no-run-if-empty javac -cp ".:${worklibs}:${testlibs}" -d . -sourcepath . > "$compilation" 2>&1; then
-    compilation_error_in_tests <(sed 's_.*/\([^/]*.java\)_\1_' "$compilation")
-    exit 0
+    compilation_failed "$compilation" \
+        'Er ging iets mis tijdens het compileren van de startcode voor deze oefening. Contacteer je lesgever.' \
+        'Fout in de startcode' \
+        'staff'
 fi
-
-debug compiled workdir
 
 # Create the Input.java class, containing the submitted code
 cat "$(jshon -e 'source' -u < "$config")" > "$filename"
@@ -225,27 +222,25 @@ cat "$(jshon -e 'source' -u < "$config")" > "$filename"
 # Compiling the user code
 compile_opts="-Xlint:all"
 [ "$allow_compilation_warnings" == 'true' ] || compile_opts+=' -Werror'
-
 if ! javac -cp ".:${worklibs}" ${compile_opts} "$filename" > "$compilation" 2>&1; then
-    compilation_error_in_submission "$compilation"
-    exit 0
+    compilation_failed "$compilation" \
+        "Je code kon niet worden gecompileerd en bijgevolg niet worden getest. De compiler rapporteerde %s." \
+        "%s" \
+        'student'
 fi
-
-debug compiled user code
 
 # Compiling the tests
 if ! find "$resources" -name '*.java' | xargs javac -cp ".:${resources}:${worklibs}:${testlibs}:judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
-    compilation_error_in_tests <(sed 's_.*/\([^/]*.java\)_\1_' "$compilation")
-    exit 0
+    compilation_failed "$compilation" \
+        'Er ging iets mis tijdens het compileren van de testen voor deze oefening. Contacteer je lesgever.' \
+        'Fout in de testen' \
+        'staff'
 fi
 
-debug compiled tests
-
-# Record time
-compiled_time="$(date +"%s")"
-compilation_time="$((compiled_time - start_time))"
+# Everything is compiled
+dodona close-tab
 
 # Running the tests
-timeout --preserve-status "$((time_limit - compilation_time))" java -Xmx"${memory_limit}k" -cp ".:${worklibs}:${testlibs}:judge.jar" dodona.junit.JUnitJSON
+java -Xmx"${memory_limit}k" -cp ".:${worklibs}:${testlibs}:judge.jar" dodona.junit.JUnitJSON
 
-debug finished
+dodona close-judgement

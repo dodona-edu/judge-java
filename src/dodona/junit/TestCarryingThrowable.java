@@ -1,19 +1,26 @@
 package dodona.junit;
 
-import dodona.feedback.Test;
+import dodona.feedback.StartTest;
+import dodona.feedback.CloseTest;
 
 public class TestCarryingThrowable extends Throwable {
     private static final long serialVersionUID = 1L;
 
-    private Test test;
+    private StartTest startTest;
+    private CloseTest closeTest;
 
-    public TestCarryingThrowable(Throwable cause, Test test) {
+    public TestCarryingThrowable(Throwable cause, StartTest startTest, CloseTest closeTest) {
         super(cause);
-        this.test = test;
+        this.startTest = startTest;
+        this.closeTest = closeTest;
     }
 
-    public Test getTest() {
-        return test;
+    public StartTest getStartTest() {
+        return startTest;
+    }
+
+    public CloseTest getCloseTest() {
+        return closeTest;
     }
 
 }

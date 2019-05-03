@@ -1,11 +1,14 @@
 package dodona.junit;
 
-import dodona.feedback.Context;
-import dodona.feedback.Feedback;
-import dodona.feedback.Message;
 import dodona.feedback.Status;
-import dodona.feedback.Tab;
-import dodona.feedback.Testcase;
+import dodona.feedback.StartTab;
+import dodona.feedback.StartContext;
+import dodona.feedback.StartTestcase;
+import dodona.feedback.CloseTab;
+import dodona.feedback.CloseContext;
+import dodona.feedback.CloseTestcase;
+import dodona.feedback.Message;
+import dodona.feedback.AppendMessage;
 import dodona.json.Json;
 
 import org.junit.runner.Description;
@@ -20,7 +23,8 @@ import java.io.StringWriter;
 public class JSONListener extends RunListener {
 
     private final PrintStream writer;
-    private final Feedback feedback;
+    private final Json json;
+    private Status status;
 
     public JSONListener() {
         this(System.out);
@@ -29,77 +33,58 @@ public class JSONListener extends RunListener {
 
     public JSONListener(PrintStream writer) {
         this.writer = writer;
-        this.feedback = new Feedback();
+        this.json = new Json();
+        this.status = Status.CORRECT;
+    }
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            feedback.deriveDescription();
-            Json json = new Json();
-            writer.print(json.asString(feedback));
-            Runtime.getRuntime().halt(0);
-        }));
+    private void write(Object src) {
+        writer.print(json.asString(src));
+    }
+
+    private void worseStatus(Status status) {
+        this.status = Status.worse(this.status, status);
     }
 
     /* COMPLETE RUN */
-    public void beforeExecution() {
-        feedback.setAccepted(false);
-        feedback.setStatus(Status.TIME_LIMIT_EXCEEDED);
-    }
+    public void beforeExecution() {}
 
-    public void afterExecution() {
-        if(feedback.isStatus(Status.TIME_LIMIT_EXCEEDED)) {
-            feedback.setAccepted(true);
-            feedback.setStatus(Status.CORRECT);
-        }
-    }
+    public void afterExecution() {}
 
     public void beforeTab(Description description) {
-        Tab tab = new Tab();
-        feedback.addChild(tab);
-
         TabTitle tabAnnotation = description.getAnnotation(TabTitle.class);
-        String title = tabAnnotation == null ? null : tabAnnotation.value();
-        tab.setTitle(title);
+        String title = tabAnnotation == null ? "Test" : tabAnnotation.value();
+        write(new StartTab(title));
     }
 
-    public void afterTab() {}
-
+    public void afterTab() {
+        write(new CloseTab());
+    }
 
     public void beforeTest(Description description) {
-        Tab tab = feedback.lastChild();
-        Context context = new Context();
-        context.setDescription(Message.code(description.getDisplayName()));
-        context.addMessage(Message.plain("TIMEOUT"));
-        tab.addChild(context);
-        tab.incrementBadgeCount();
+        write(new StartContext(Message.code(description.getDisplayName())));
     }
 
     public void aftertest(Failure failure) {
-        Tab tab = feedback.lastChild();
-        Context context = tab.lastChild();
-        context.clearMessages();
         if(failure == null) {
-            tab.decrementBadgeCount();
-            context.setAccepted(true);
+            write(new CloseContext(true));
         } else {
-            Testcase testcase = new Testcase();
-            context.addChild(testcase);
-            testcase.setDescription(Message.code(failure.getException().toString()));
-
-            feedback.setAccepted(false);
-            if(feedback.isStatus(Status.TIME_LIMIT_EXCEEDED)) {
-                feedback.setStatus(Status.WRONG);
-            }
             Throwable thrown = failure.getException();
             while(thrown != null) {
                 if(thrown instanceof AnnotatedThrowable) {
-                    testcase.addMessage(((AnnotatedThrowable) thrown).getFeedback());
+                    write(new StartTestcase(Message.code(failure.getException().toString())));
+                    worseStatus(Status.WRONG);
+                    write(new AppendMessage(((AnnotatedThrowable) thrown).getFeedback()));
+                    write(new CloseTestcase(false));
                 } else if(thrown instanceof TestCarryingThrowable) {
-                    testcase.addChild(((TestCarryingThrowable) thrown).getTest());
-                    testcase.setDescription(null);
+                    write(new StartTestcase(Message.plain("")));
+                    worseStatus(Status.WRONG);
+                    write(((TestCarryingThrowable) thrown).getStartTest());
+                    write(((TestCarryingThrowable) thrown).getCloseTest());
+                    write(new CloseTestcase(false));
                 } else if(!(thrown instanceof AssertionError)) {
-                    feedback.setStatus(Status.RUNTIME_ERROR);
-                    testcase.setDescription(Message.code(thrown.toString()));
-                    testcase.addMessage(Message.code("Caused by " + thrown));
+                    write(new StartTestcase(Message.code(thrown.toString())));
+                    worseStatus(Status.RUNTIME_ERROR);
+                    write(new AppendMessage(Message.code("Caused by " + thrown)));
 
                     StackTraceElement[] stacktrace = thrown.getStackTrace();
                     boolean leftDefaultPackage = false;
@@ -108,11 +93,14 @@ public class JSONListener extends RunListener {
                         boolean inDefaultPackage = stacktrace[i].getClassName().indexOf('.') < 0;
                         if(leftDefaultPackage && !inDefaultPackage) break;
                         if(inDefaultPackage) leftDefaultPackage = true;
-                        testcase.addMessage(Message.code(" at " + stacktrace[i].toString()));
+                        write(new AppendMessage(Message.code(" at " + stacktrace[i].toString())));
                     }
+                    write(new CloseTestcase(false));
                 }
                 thrown = thrown.getCause();
             }
+
+            write(new CloseContext(false));
         }
     }
 
@@ -161,7 +149,7 @@ public class JSONListener extends RunListener {
                               failure.getException().getMessage() + "\n");
         failure.getException().printStackTrace(new PrintWriter(stackCollector));
 
-        feedback.addMessage(Message.internalError(stackCollector.toString()));
+        write(new AppendMessage(Message.internalError(stackCollector.toString())));
     }
 
     public void testIgnored(Description description) throws Exception {}
