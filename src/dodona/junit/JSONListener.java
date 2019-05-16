@@ -9,6 +9,7 @@ import dodona.feedback.CloseContext;
 import dodona.feedback.CloseTestcase;
 import dodona.feedback.Message;
 import dodona.feedback.AppendMessage;
+import dodona.feedback.EscalateStatus;
 import dodona.json.Json;
 
 import org.junit.runner.Description;
@@ -24,7 +25,6 @@ public class JSONListener extends RunListener {
 
     private final PrintStream writer;
     private final Json json;
-    private Status status;
 
     public JSONListener() {
         this(System.out);
@@ -34,15 +34,10 @@ public class JSONListener extends RunListener {
     public JSONListener(PrintStream writer) {
         this.writer = writer;
         this.json = new Json();
-        this.status = Status.CORRECT;
     }
 
     private void write(Object src) {
         writer.print(json.asString(src));
-    }
-
-    private void worseStatus(Status status) {
-        this.status = Status.worse(this.status, status);
     }
 
     /* COMPLETE RUN */
@@ -72,18 +67,17 @@ public class JSONListener extends RunListener {
             while(thrown != null) {
                 if(thrown instanceof AnnotatedThrowable) {
                     write(new StartTestcase(Message.code(failure.getException().toString())));
-                    worseStatus(Status.WRONG);
+                    write(new EscalateStatus(Status.WRONG, "Fout"));
                     write(new AppendMessage(((AnnotatedThrowable) thrown).getFeedback()));
                     write(new CloseTestcase(false));
                 } else if(thrown instanceof TestCarryingThrowable) {
                     write(new StartTestcase(Message.plain("")));
-                    worseStatus(Status.WRONG);
                     write(((TestCarryingThrowable) thrown).getStartTest());
                     write(((TestCarryingThrowable) thrown).getCloseTest());
                     write(new CloseTestcase(false));
                 } else if(!(thrown instanceof AssertionError)) {
                     write(new StartTestcase(Message.code(thrown.toString())));
-                    worseStatus(Status.RUNTIME_ERROR);
+                    write(new EscalateStatus(Status.RUNTIME_ERROR, "Uitvoeringsfout"));
                     write(new AppendMessage(Message.code("Caused by " + thrown)));
 
                     StackTraceElement[] stacktrace = thrown.getStackTrace();
