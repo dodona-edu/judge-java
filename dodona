@@ -67,7 +67,8 @@ start-context)
 	done
 	if [ -n "$description" ]; then
 		apply jshon -Q -n object -s "$description" -i description -i description
-		[ -n "$format" ] && apply jshon -Q -e 'description' -s "$format" -i format -i description
+		[ -z "$format" ] && crash description requires format
+		apply jshon -Q -e 'description' -s "$format" -i format -i description
 		if [ -n "$permission" ]; then
 			check_permission "$permission"
 			apply jshon -Q -e 'description' -s "$permission" -i permission -i description
@@ -84,8 +85,9 @@ start-testcase)
 		esac
 	done
 	[ -z "$description" ] && crash testcase requires description
+	[ -z "$format" ] && crash testcase requires format
 	apply jshon -Q -n object -s "$description" -i description -i description
-	[ -n "$format" ] && apply jshon -Q -e 'description' -s "$format" -i format -i description
+	apply jshon -Q -e 'description' -s "$format" -i format -i description
 	if [ -n "$permission" ]; then
 		check_permission "$permission"
 		apply jshon -Q -e 'description' -s "$permission" -i permission -i description
@@ -105,7 +107,8 @@ start-test)
 	apply jshon -Q -s "$expected" -i expected
 	if [ -n "$description" ]; then
 		apply jshon -Q -n object -s "$description" -i description -i description
-		[ -n "$format" ] && apply jshon -Q -e 'description' -s "$format" -i format -i description
+		[ -z "$format" ] && crash description requires format
+		apply jshon -Q -e 'description' -s "$format" -i format -i description
 		if [ -n "$permission" ]; then
 			check_permission "$permission"
 			apply jshon -Q -e 'description' -s "$permission" -i permission -i description
@@ -122,8 +125,9 @@ append-message)
 		esac
 	done
 	[ -z "$description" ] && crash message requires description
+	[ -z "$format" ] && crash message requires format
 	apply jshon -Q -n object -s "$description" -i description -i message
-	[ -n "$format" ] && apply jshon -Q -e message -s "$format" -i format -i message
+	apply jshon -Q -e message -s "$format" -i format -i message
 	if [ -n "$permission" ]; then
 		check_permission "$permission"
 		apply jshon -Q -e message -s "$permission" -i permission -i message

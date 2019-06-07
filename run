@@ -76,7 +76,7 @@ explain_compilation_warning() {
 parse_compilation_error_staff() {
     # arg1: 1 compiler log
     dodona start-context
-    dodona start-testcase -d "Compilatiefout"
+    dodona start-testcase -f plain -d "Compilatiefout"
     dodona append-message -f code -p staff -d "$1"
     dodona close-testcase -A
     dodona close-context
@@ -101,7 +101,7 @@ parse_compilation_error_student() {
 
     # Start the case, add the explanation message if it exists, add compilation output as message
     [ -z "$explanation" ] || testcase_msg+=": $explanation"
-    dodona start-testcase -d "$testcase_msg"
+    dodona start-testcase -f plain -d "$testcase_msg"
     dodona append-message -f code -d "$1"
 
     # Get the code annotation information.
