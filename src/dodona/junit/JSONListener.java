@@ -76,8 +76,8 @@ public class JSONListener extends RunListener {
                 write(((TestCarryingThrowable) thrown).getCloseTest());
                 write(new CloseTestcase(false));
             } else if(thrown instanceof AssertionError) {
-                write(new StartTestcase(Message.code(thrown.getMessage())));
                 write(new EscalateStatus(Status.WRONG, "Fout"));
+                write(new StartTestcase(Message.code(thrown.getMessage() == null ? "" : thrown.getMessage())));
                 write(new CloseTestcase(false));
             } else {
                 Throwable deepest = thrown;
