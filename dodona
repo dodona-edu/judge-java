@@ -146,12 +146,12 @@ annotate-code)
 		esac
 	done
 	[ -z "$row" -o -z "$text" ] && crash annotation requires row and text
-	apply jshon -Q -s "$row" -i row
+	apply jshon -Q -n "$row" -i row
 	apply jshon -Q -s "$text" -i text
-	[ -n "$column" ] && apply jshon -Q -s "$column" -i column
+	[ -n "$column" ] && apply jshon -Q -n "$column" -i column
 	[ -n "$type" ] && check_type "$type" && apply jshon -Q -s "$type" -i type
-	[ -n "$rows" ] && apply jshon -Q -s "$rows" -i rows
-	[ -n "$columns" ] && apply jshon -Q -s "$columns" -i columns
+	[ -n "$rows" ] && apply jshon -Q -n "$rows" -i rows
+	[ -n "$columns" ] && apply jshon -Q -n "$columns" -i columns
 	;;
 close-test)
 	while getopts g:s:aA f; do
