@@ -64,22 +64,29 @@ public class JSONListener extends RunListener {
             write(new CloseContext(true));
         } else {
             Throwable thrown = failure.getException();
-            while(thrown != null) {
-                if(thrown instanceof AnnotatedThrowable) {
-                    write(new StartTestcase(Message.code(failure.getException().toString())));
-                    write(new EscalateStatus(Status.WRONG, "Fout"));
-                    write(new AppendMessage(((AnnotatedThrowable) thrown).getFeedback()));
-                    write(new CloseTestcase(false));
-                } else if(thrown instanceof TestCarryingThrowable) {
-                    write(new StartTestcase(Message.plain("")));
-                    write(((TestCarryingThrowable) thrown).getStartTest());
-                    write(((TestCarryingThrowable) thrown).getCloseTest());
-                    write(new CloseTestcase(false));
-                } else if(!(thrown instanceof AssertionError)) {
-                    write(new StartTestcase(Message.code(thrown.toString())));
-                    write(new EscalateStatus(Status.RUNTIME_ERROR, "Uitvoeringsfout"));
-                    write(new AppendMessage(Message.code("Caused by " + thrown)));
+            Message feedback = null;
+            if(thrown instanceof AnnotatedThrowable) {
+                feedback = ((AnnotatedThrowable) thrown).getFeedback();
+                thrown = thrown.getCause();
+            }
 
+            if(thrown instanceof TestCarryingThrowable) {
+                write(new StartTestcase(Message.plain("")));
+                write(((TestCarryingThrowable) thrown).getStartTest());
+                write(((TestCarryingThrowable) thrown).getCloseTest());
+                write(new CloseTestcase(false));
+            } else if(thrown instanceof AssertionError) {
+                write(new StartTestcase(Message.code(thrown.getMessage())));
+                write(new EscalateStatus(Status.WRONG, "Fout"));
+                write(new CloseTestcase(false));
+            } else {
+                Throwable deepest = thrown;
+                while(deepest.getCause() != null) deepest = deepest.getCause();
+                write(new StartTestcase(Message.code(deepest.toString())));
+                write(new EscalateStatus(Status.RUNTIME_ERROR, "Uitvoeringsfout"));
+                while(thrown != null) {
+                    StringBuilder message = new StringBuilder();
+                    message.append("Caused by " + thrown);
                     StackTraceElement[] stacktrace = thrown.getStackTrace();
                     boolean leftDefaultPackage = false;
                     for(int i = 0; i < stacktrace.length; i++) {
@@ -87,13 +94,15 @@ public class JSONListener extends RunListener {
                         boolean inDefaultPackage = stacktrace[i].getClassName().indexOf('.') < 0;
                         if(leftDefaultPackage && !inDefaultPackage) break;
                         if(inDefaultPackage) leftDefaultPackage = true;
-                        write(new AppendMessage(Message.code(" at " + stacktrace[i].toString())));
+                        message.append("\n at " + stacktrace[i].toString());
                     }
-                    write(new CloseTestcase(false));
+                    write(new AppendMessage(Message.code(message.toString())));
+                    thrown = thrown.getCause();
                 }
-                thrown = thrown.getCause();
+                write(new CloseTestcase(false));
             }
 
+            if(feedback != null) write(new AppendMessage(feedback));
             write(new CloseContext(false));
         }
     }
