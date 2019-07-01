@@ -74,11 +74,9 @@ public class JSONListener extends RunListener {
                 write(new StartTestcase(Message.plain("")));
                 write(((TestCarryingThrowable) thrown).getStartTest());
                 write(((TestCarryingThrowable) thrown).getCloseTest());
-                write(new CloseTestcase(false));
             } else if(thrown instanceof AssertionError) {
                 write(new EscalateStatus(Status.WRONG, "Fout"));
                 write(new StartTestcase(Message.code(thrown.getMessage() == null ? "" : thrown.getMessage())));
-                write(new CloseTestcase(false));
             } else {
                 Throwable deepest = thrown;
                 while(deepest.getCause() != null) deepest = deepest.getCause();
@@ -99,10 +97,10 @@ public class JSONListener extends RunListener {
                     write(new AppendMessage(Message.code(message.toString())));
                     thrown = thrown.getCause();
                 }
-                write(new CloseTestcase(false));
             }
 
             if(feedback != null) write(new AppendMessage(feedback));
+            write(new CloseTestcase(false));
             write(new CloseContext(false));
         }
     }
