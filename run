@@ -183,6 +183,10 @@ compilation_failed() {
 
     dodona append-message -f callout -d "$(printf "$callout" "$described_both_count")"
 
+    if grep -q '^package' "$filename"; then
+        dodona append-message -f callout -d 'Ben je zeker dat je de ingediende klasse in het default package plaatste?'
+    fi
+
     # Append a (failed) testcase per compilation error
     sed 's_.*/\([^/]*.java\)_\1_' "$compilation" | parse_compilation_errors "$target"
 
