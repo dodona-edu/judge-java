@@ -11,7 +11,7 @@ filename="$(jshon -e 'evaluation' -e 'filename' -u < "$path_to_exercise/config.j
 
 [ -d "$path_to_exercise/workdir/" ] && find "$path_to_exercise/workdir/" -mindepth 1 -maxdepth 1 | xargs cp -r -t .
 
-bash "../run" <<HERE
+sh "../run" <<HERE
 {
     "resources": "$path_to_exercise/evaluation",
     "judge": "..",

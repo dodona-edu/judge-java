@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 
-set -o pipefail -e
+set -e
 
 # Temp files
 config="$(mktemp)"      # configuration
@@ -145,7 +145,7 @@ parse_compilation_errors() {
     compile_err="$(echo "$compile_err" | sed "s/[0-9]\+ errors\?//g")"
 
     # Process the last error/warning.
-    if [ "$1" == 'student' ]; then
+    if [ "$1" = 'student' ]; then
         parse_compilation_error_student "$compile_err" </dev/zero
     else
         parse_compilation_error_staff "$compile_err" </dev/zero
@@ -225,7 +225,7 @@ cat "$(jshon -e 'source' -u < "$config")" > "$filename"
 
 # Compiling the user code
 compile_opts="-Xlint:all"
-[ "$allow_compilation_warnings" == 'true' ] || compile_opts+=' -Werror'
+[ "$allow_compilation_warnings" = 'true' ] || compile_opts+=' -Werror'
 if ! javac -cp ".:${worklibs}" ${compile_opts} "$filename" > "$compilation" 2>&1; then
     compilation_failed "$compilation" \
         "Je code kon niet worden gecompileerd en bijgevolg niet worden getest. De compiler rapporteerde %s." \
