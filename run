@@ -15,20 +15,20 @@ trap "rm -rf '$config' '$result' '$compilation' '$execution' '/tmp/build'" EXIT
 cat > "$config"
 
 # Directories containing the test files and the judge repository
-resources="$(jshon -e 'resources' -u < "$config")"
-judge="$(jshon -e 'judge' -u < "$config")"
-workdir="$(jshon -e 'workdir' -u < "$config")"
-filename="$(jshon -e 'filename' -u < "$config")"
+resources="$(jq -r '.resources' "$config")"
+judge="$(jq -r '.judge' "$config")"
+workdir="$(jq -r '.workdir' "$config")"
+filename="$(jq -r '.filename' "$config")"
 
 # time and memory limit with margins
-time_limit="$(jshon -e 'time_limit' -u < "$config")"
+time_limit="$(jq -r '.time_limit' "$config")"
 time_limit="$(( time_limit - 10 ))"
 
-memory_limit="$(jshon -e 'memory_limit' -u < "$config")"
+memory_limit="$(jq -r '.memory_limit' "$config")"
 memory_limit="$(( memory_limit * 9 / 10000 ))"
 
 # Other configuration parameters.
-allow_compilation_warnings="$(jshon -Q -e 'allow_compilation_warnings' -u < "$config" || echo 'true')"
+allow_compilation_warnings="$(jq -r '.allow_compilation_warnings == true' "$config")"
 
 ############################## [ Helper functions ] ############################
 # Import json helper functions.
@@ -221,12 +221,11 @@ if ! find . -name '*.java' | xargs --no-run-if-empty javac -cp ".:${worklibs}:${
 fi
 
 # Create the Input.java class, containing the submitted code
-cat "$(jshon -e 'source' -u < "$config")" > "$filename"
+cat "$(jq -r '.source' "$config")" > "$filename"
 
 # Compiling the user code
-compile_opts="-Xlint:all"
-[ "$allow_compilation_warnings" = 'true' ] || compile_opts+=' -Werror'
-if ! javac -cp ".:${worklibs}" ${compile_opts} "$filename" > "$compilation" 2>&1; then
+[ "$allow_compilation_warnings" = 'true' ] || compile_opt='-Werror'
+if ! javac -cp ".:${worklibs}" -Xlint:all $compile_opt "$filename" > "$compilation" 2>&1; then
     compilation_failed "$compilation" \
         "Je code kon niet worden gecompileerd en bijgevolg niet worden getest. De compiler rapporteerde %s." \
         "%s" \
