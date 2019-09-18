@@ -208,10 +208,6 @@ jar -cf "judge.jar" -C /tmp/build .
 testlibs="$(find "$judge/lib" "$resources" -name '*.jar' | xargs echo | tr ' ' ':')"
 worklibs="$([ -d "$workdir" ] && find "$workdir" -name '*.jar' | xargs echo | tr ' ' ':')"
 
-compilation_error() {
-    compilation_output="$1"
-}
-
 # Compiling the workdir given code
 if ! find . -name '*.java' | xargs --no-run-if-empty javac -cp ".:${worklibs}" -d . -sourcepath . > "$compilation" 2>&1; then
     compilation_failed "$compilation" \
