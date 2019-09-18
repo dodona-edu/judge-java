@@ -201,10 +201,6 @@ dodona start-judgement
 
 dodona start-tab -h -t 'Compiler'
 
-# Compiling judge into "build" and getting a jar in the workdir
-find "$judge/src" -name '*.java' \
-    | xargs javac -classpath "$judge/lib/*:/tmp/build" -d /tmp/build -sourcepath "$judge/src"
-jar -cf "judge.jar" -C /tmp/build .
 testlibs="$(find "$judge/lib" "$resources" -name '*.jar' | xargs echo | tr ' ' ':')"
 worklibs="$([ -d "$workdir" ] && find "$workdir" -name '*.jar' | xargs echo | tr ' ' ':')"
 
@@ -236,6 +232,11 @@ if ! [ -f "${filename%.java}.class" ]; then
     dodona close-judgement -A -e 'compilation error' -h 'Compilatiefout'
     exit 0
 fi
+
+# Compiling judge into "build" and getting a jar in the workdir
+find "$judge/src" -name '*.java' \
+    | xargs javac -classpath "$judge/lib/*:/tmp/build" -d /tmp/build -sourcepath "$judge/src"
+jar -cf "judge.jar" -C /tmp/build .
 
 # Compiling the tests
 if ! find "$resources" -name '*.java' | xargs javac -cp ".:${resources}:${worklibs}:${testlibs}:judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
