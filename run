@@ -205,7 +205,7 @@ testlibs="$(find "$judge/lib" "$resources" -name '*.jar' | xargs echo | tr ' ' '
 worklibs="$([ -d "$workdir" ] && find "$workdir" -name '*.jar' | xargs echo | tr ' ' ':')"
 
 # Compiling the workdir given code
-if ! find . -name '*.java' | xargs --no-run-if-empty javac -cp ".:${worklibs}" -d . -sourcepath . > "$compilation" 2>&1; then
+if ! find . -name '*.java' | xargs --no-run-if-empty javac -cp ".:${worklibs}:${testlibs}" -d . -sourcepath . > "$compilation" 2>&1; then
     compilation_failed "$compilation" \
         'Er ging iets mis tijdens het compileren van de startcode voor deze oefening. Contacteer je lesgever.' \
         'Fout in de startcode' \

@@ -40,11 +40,12 @@ Other configuration values used by the Java judge are:
 
 ### Where to put which code?
 
-When running the judge, the code is compiled in the order given below. This means each step can use the classes defined in the steps above.
+When running the judge, the code is compiled in the order given below. This means each step can use the classes defined in the steps above. During the compilation of these files, the jars in [lib](lib) are available.
 
-- The code in `workdir` is compiled. This directory should contain code for everyone, e.g. classes the student can use or interfaces they should implement. It can also contain jar-files.
+- The code in `workdir` is compiled. This directory should contain code for everyone, e.g. classes the student can use or interfaces they should implement. It can also contain exercise-specific jar-files.
 - The code submitted by the student is compiled.
-- The code in `evaluation` is compiled. This directory should contain the JUnit tests. It can also contain other classes and jar-files which will be included in the class path. During the compilation of these files, the jars in [lib](lib) are included.
+- The judge is compiled.
+- The code in `evaluation` is compiled. This directory should contain the JUnit tests. It can also contain other classes and jar-files which will be included in the class path.
 
 After compilation, the judge is executed. It will assume the presence of a `TestSuite` class, containing a JUnit testsuite, which it will run. While the source file for `TestSuite` can be anywhere, I'd advise `evaluation/TestSuite.java`.
 
