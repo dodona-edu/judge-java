@@ -56,7 +56,9 @@ public class JSONListener extends RunListener {
     }
 
     public void beforeTest(Description description) {
-        write(new StartContext(Message.code(description.getDisplayName())));
+        final TestDescription annotation = description.getAnnotation(TestDescription.class);
+        final String title = annotation == null ? description.getDisplayName() : annotation.value();
+        write(new StartContext(Message.code(title)));
     }
 
     public void aftertest(Failure failure) {
