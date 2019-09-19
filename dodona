@@ -15,29 +15,29 @@ crash() {
 
 check_status() {
 	case "$1" in
-	"internal error")    return ;;
-	"compilation error") return ;;
-	"runtime error")     return ;;
-	"wrong")             return ;;
-	"correct")           return ;;
+	"internal error")    return 0 ;;
+	"compilation error") return 0 ;;
+	"runtime error")     return 0 ;;
+	"wrong")             return 0 ;;
+	"correct")           return 0 ;;
 	*)                   crash invalid status "$1" ;;
 	esac
 }
 
 check_permission() {
 	case "$1" in
-	"staff")   return ;;
-	"student") return ;;
-	"zeus")    return ;;
+	"staff")   return 0 ;;
+	"student") return 0 ;;
+	"zeus")    return 0 ;;
 	*)         crash invalid permission "$1" ;;
 	esac
 }
 
 check_type() {
 	case "$1" in
-	"error")   return ;;
-	"warning") return ;;
-	"info")    return ;;
+	"error")   return 0 ;;
+	"warning") return 0 ;;
+	"info")    return 0 ;;
 	*)         crash invalid permission "$1" ;;
 	esac
 }
