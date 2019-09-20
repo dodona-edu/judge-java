@@ -20,6 +20,9 @@ judge="$(jq -r '.judge' "$config")"
 workdir="$(jq -r '.workdir' "$config")"
 filename="$(jq -r '.filename' "$config")"
 
+# Natural language of the user
+natural_language="$(jq -r '.natural_language' "$config")"
+
 # time and memory limit with margins
 time_limit="$(jq -r '.time_limit' "$config")"
 time_limit="$(( time_limit - 10 ))"
@@ -250,6 +253,6 @@ fi
 dodona close-tab
 
 # Running the tests
-java -Xmx"${memory_limit}k" -cp ".:${worklibs}:${testlibs}:judge.jar" dodona.junit.JUnitJSON
+java -Xmx"${memory_limit}k" -cp ".:${worklibs}:${testlibs}:judge.jar" dodona.junit.JUnitJSON -Dlanguage="${natural_language}"
 
 dodona close-judgement
