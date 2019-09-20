@@ -4,3 +4,4 @@ dist/
 testing/*.class
 testing/*.jar
 testing/*.java
+testing/*.properties
