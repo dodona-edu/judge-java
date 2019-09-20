@@ -9,6 +9,7 @@ import org.junit.runner.JUnitCore;
 import static java.lang.Thread.currentThread;
 
 public class JUnitJSON {
+    public static final String PROPERTY_LANGUAGE = "dodona.language";
 
     public static void main(String... args) {
         Class<?> testSuite = null;

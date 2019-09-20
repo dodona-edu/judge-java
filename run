@@ -253,6 +253,6 @@ fi
 dodona close-tab
 
 # Running the tests
-java -Xmx"${memory_limit}k" -cp ".:${worklibs}:${testlibs}:judge.jar" dodona.junit.JUnitJSON -Dlanguage="${natural_language}"
+java -Xmx"${memory_limit}k" -cp ".:${worklibs}:${testlibs}:judge.jar" -Ddodona.language="${natural_language}" dodona.junit.JUnitJSON
 
 dodona close-judgement
