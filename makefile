@@ -17,6 +17,7 @@ build/%.class: src/%.java
 dist/judge.jar: build/dodona/junit/JUnitJSON.class \
 				build/dodona/junit/MessageWriter.class \
 				build/dodona/junit/TabTitle.class \
+				build/dodona/util/Interactive.class \
 				$(shell find build -type f)
 	mkdir -p $(dir $@)
 	jar -cf "$@" -C build/ .
