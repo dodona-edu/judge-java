@@ -10,19 +10,25 @@ import dodona.feedback.CloseTestcase;
 import dodona.feedback.Message;
 import dodona.feedback.AppendMessage;
 import dodona.feedback.EscalateStatus;
+import dodona.i18n.I18nTestDescription;
+import dodona.i18n.Language;
 import dodona.json.Json;
 
 import org.junit.runner.Description;
+import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
-import org.junit.runner.Result;
 
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Optional;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
 
 public class JSONListener extends RunListener {
-
+    private final ResourceBundle descriptions;
     private final PrintStream writer;
     private final Json json;
 
@@ -32,8 +38,25 @@ public class JSONListener extends RunListener {
     }
 
     public JSONListener(PrintStream writer) {
+        this.descriptions = getBundleIfExists("descriptions", Language.current());
         this.writer = writer;
         this.json = new Json();
+    }
+    
+    /**
+     * Gets the given resource bundle for the current language, if it exists.
+     *
+     * @param base the base name of the resource bundle
+     * @return the bundle if it exists, or null otherwise
+     */
+    private static ResourceBundle getBundleIfExists(final String base, final Language language) {
+        try {
+            final String bundleName = String.format("%s.%s.properties", base, language.getIdentifier());
+            final InputStream bundleStream = JSONListener.class.getClassLoader().getResourceAsStream(bundleName);
+            return new PropertyResourceBundle(bundleStream);
+        } catch (final Exception exception) {
+            return null;
+        }
     }
 
     private void write(Object src) {
@@ -56,8 +79,7 @@ public class JSONListener extends RunListener {
     }
 
     public void beforeTest(Description description) {
-        final TestDescription annotation = description.getAnnotation(TestDescription.class);
-        final String title = annotation == null ? description.getDisplayName() : annotation.value();
+        final String title = this.getDescription(description);
         write(new StartContext(Message.code(title)));
     }
 
@@ -105,6 +127,45 @@ public class JSONListener extends RunListener {
             write(new CloseTestcase(false));
             write(new CloseContext(false));
         }
+    }
+    
+    /**
+     * Get the human-friendly version of the test name.
+     *
+     * @param desc the description
+     * @return the human-friendly version
+     */
+    private String getDescription(final Description desc) {
+        return getI18nTestDescription(desc)
+            .orElseGet(() -> getTestDescription(desc)
+                .orElse(desc.getDisplayName()));
+    }
+    
+    /**
+     * Parse a @I18nTestDescription annotation.
+     *
+     * @param desc the description
+     * @return the value of the I18nTestDescription annotation if available
+     */
+    private Optional<String> getI18nTestDescription(final Description desc) {
+        return Optional.ofNullable(this.descriptions).flatMap(bundle ->
+            Optional.ofNullable(desc.getAnnotation(I18nTestDescription.class))
+                .map(I18nTestDescription::value)
+                .filter(bundle::containsKey)
+                .map(bundle::getString)
+        );
+    }
+    
+    /**
+     * Parse a @TestDescription annotation.
+     *
+     * @param desc the description
+     * @return the value of the TestDescription annotation if available
+     */
+    private static Optional<String> getTestDescription(final Description desc) {
+        return Optional
+            .ofNullable(desc.getAnnotation(TestDescription.class))
+            .map(TestDescription::value);
     }
 
     /* Ugly internals */
