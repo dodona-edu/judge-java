@@ -15,6 +15,7 @@ sh "../run" <<HERE
 {
     "resources": "$path_to_exercise/evaluation",
     "judge": "..",
+    "natural_language": "en",
     "workdir": "$(pwd)",
     "allow_compilation_warnings": "$allow_compilation_warnings",
     "filename": "$filename",
