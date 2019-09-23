@@ -1,0 +1,12 @@
+{
+  "description": {
+    "names": {
+      "nl": "Voorbeeldoefening voor internationalisatie.",
+      "en": "Example exercise for internationalisation."
+    }
+  },
+  "evaluation": {
+    "filename": "Translated.java",
+    "handler": "java12"
+  }
+}
