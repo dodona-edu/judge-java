@@ -5,7 +5,7 @@ set -e
 command="$1"
 shift
 
-result="$(jq -n '.command = "'"$command"'"')"
+result="$(jq -n --arg c "$command" '.command = $c')"
 apply() { result="$(printf '%s' "$result" | "$@")" ; }
 
 crash() {
@@ -54,7 +54,7 @@ start-tab)
 		esac
 	done
 	[ -z "$title" ] && crash tab requires title
-	apply jq '.title = "'"$title"'"'
+	apply jq --arg t "$title" '.title = $t'
 	;;
 start-context)
 	while getopts f:p:d: f; do
@@ -66,12 +66,12 @@ start-context)
 		esac
 	done
 	if [ -n "$description" ]; then
-		apply jq '.description.description = "'"$description"'"'
+		apply jq --arg d "$description" '.description.description = $d'
 		[ -z "$format" ] && crash description requires format
-		apply jq '.description.format = "'"$format"'"'
+		apply jq --arg f "$format" '.description.format = $f'
 		if [ -n "$permission" ]; then
 			check_permission "$permission"
-    		apply jq '.description.permission = "'"$permission"'"'
+    		apply jq --arg p "$permission" '.description.permission = $p'
 		fi
 	fi
 	;;
@@ -86,11 +86,11 @@ start-testcase)
 	done
 	[ -z "$description" ] && crash testcase requires description
 	[ -z "$format" ] && crash testcase requires format
-	apply jq '.description.description = "'"$description"'"'
-	apply jq '.description.format = "'"$format"'"'
+	apply jq --arg d "$description" '.description.description = $d'
+	apply jq --arg f "$format" '.description.format = $f'
 	if [ -n "$permission" ]; then
 		check_permission "$permission"
-    	apply jq '.description.permission = "'"$permission"'"'
+    	apply jq --arg p "$permission" '.description.permission = $p'
 	fi
 	;;
 start-test)
@@ -104,14 +104,14 @@ start-test)
 		esac
 	done
 	[ -z "$expected" ] && crash test requires expected
-	apply jq '.expected = "'"$expected"'"'
+	apply jq --arg e "$expected" '.expected = $e'
 	if [ -n "$description" ]; then
-		apply jq '.description.description = "'"$description"'"'
+		apply jq --arg d "$description" '.description.description = $d'
 		[ -z "$format" ] && crash description requires format
-    	apply jq '.description.format = "'"$format"'"'
+    	apply jq --arg f "$format" '.description.format = $f'
 		if [ -n "$permission" ]; then
 			check_permission "$permission"
-			apply jq '.description.permission = "'"$permission"'"'
+			apply jq --arg p "$permission" '.description.permission = $p'
 		fi
 	fi
 	;;
@@ -126,11 +126,11 @@ append-message)
 	done
 	[ -z "$description" ] && crash message requires description
 	[ -z "$format" ] && crash message requires format
-	apply jq '.message.description = "'"$description"'"'
-	apply jq '.message.format = "'"$format"'"'
+	apply jq --arg d "$description" '.message.description = $d'
+	apply jq --arg f "$format" '.message.format = $f'
 	if [ -n "$permission" ]; then
 		check_permission "$permission"
-		apply jq '.message.permission = "'"$permission"'"'
+		apply jq --arg p "$permission" '.message.permission = $p'
 	fi
 	;;
 annotate-code)
@@ -147,9 +147,9 @@ annotate-code)
 	done
 	[ -z "$row" -o -z "$text" ] && crash annotation requires row and text
 	apply jq ".row = $row"
-	apply jq '.text = "'"$text"'"'
+	apply jq --arg t "$text" '.text = $t'
 	[ -n "$column" ] && apply jq ".column = $column"
-	[ -n "$type" ] && check_type "$type" && apply jq '.type = "'"$type"'"'
+	[ -n "$type" ] && check_type "$type" && apply jq --arg t "$type" '.type = $"'
 	[ -n "$rows" ] && apply jq ".rows = $rows"
 	[ -n "$columns" ] && apply jq ".columns = $columns"
 	;;
@@ -165,10 +165,10 @@ close-test)
 		esac
 	done
 	[ -z "$generated" -o -z "$enum" -o -z "$human" ] && crash closing test requires generated, enum and human
-	apply jq '.generated = "'"$generated"'"'
+	apply jq --arg g "$generated" '.generated = $g'
 	check_status "$enum"
-	apply jq '.status.enum = "'"$enum"'"'
-	apply jq '.status.human = "'"$human"'"'
+	apply jq --arg e "$enum" '.status.enum = $e'
+	apply jq --arg h "$human" '.status.human = $h'
 	;;
 close-testcase|close-context)
 	while getopts aA f; do
