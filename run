@@ -250,18 +250,10 @@ if ! find "$resources" -name '*.java' | xargs javac -cp ".:${resources}:${workli
         'staff'
 fi
 
-# Find all .properties-files in the resources folder and copy them here
-if ! find "$resources/properties" -name '*.properties' | xargs --no-run-if-empty -I{} cp -u {} . > "$properties" 2>&1; then
-  compilation_failed "$properties" \
-    'Er ging iets mis tijdens het kopiëren van de properties-files. Contacteer je lesgever.' \
-    'Fout in de testen' \
-    'staff'
-fi
-
 # Everything is compiled
 dodona close-tab
 
 # Running the tests
-java -Xmx"${memory_limit}k" -cp ".:${worklibs}:${testlibs}:judge.jar" -Ddodona.language="${natural_language}" dodona.junit.JUnitJSON
+java -Xmx"${memory_limit}k" -cp ".:${worklibs}:${testlibs}:judge.jar:${resources}/properties" -Ddodona.language="${natural_language}" dodona.junit.JUnitJSON
 
 dodona close-judgement
