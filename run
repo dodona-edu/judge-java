@@ -245,9 +245,9 @@ jar -cf "judge.jar" -C /tmp/build .
 # Compiling the tests
 if ! find "$resources" -name '*.java' | xargs javac -cp ".:${resources}:${worklibs}:${testlibs}:judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
     compilation_failed "$compilation" \
-        'Er ging iets mis tijdens het compileren van de testen voor deze oefening. Contacteer je lesgever.' \
+        'Er ging iets mis tijdens het compileren van de testen voor deze oefening.' \
         'Fout in de testen' \
-        'staff'
+        'student'
 fi
 
 # Everything is compiled
