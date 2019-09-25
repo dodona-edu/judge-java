@@ -101,7 +101,7 @@ parse_compilation_error_student() {
     fi
 
     # Start the case, add the explanation message if it exists, add compilation output as message
-    [ -z "$explanation" ] || testcase_msg+=": $explanation"
+    [ -z "$explanation" ] || testcase_msg="$testcase_msg: $explanation"
     dodona start-testcase -f plain -d "$testcase_msg"
     dodona append-message -f code -d "$1"
 
