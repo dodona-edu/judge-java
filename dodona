@@ -71,7 +71,7 @@ start-context)
 		apply jq --arg f "$format" '.description.format = $f'
 		if [ -n "$permission" ]; then
 			check_permission "$permission"
-    		apply jq --arg p "$permission" '.description.permission = $p'
+			apply jq --arg p "$permission" '.description.permission = $p'
 		fi
 	fi
 	;;
@@ -90,7 +90,7 @@ start-testcase)
 	apply jq --arg f "$format" '.description.format = $f'
 	if [ -n "$permission" ]; then
 		check_permission "$permission"
-    	apply jq --arg p "$permission" '.description.permission = $p'
+		apply jq --arg p "$permission" '.description.permission = $p'
 	fi
 	;;
 start-test)
@@ -108,7 +108,7 @@ start-test)
 	if [ -n "$description" ]; then
 		apply jq --arg d "$description" '.description.description = $d'
 		[ -z "$format" ] && crash description requires format
-    	apply jq --arg f "$format" '.description.format = $f'
+		apply jq --arg f "$format" '.description.format = $f'
 		if [ -n "$permission" ]; then
 			check_permission "$permission"
 			apply jq --arg p "$permission" '.description.permission = $p'
@@ -149,7 +149,7 @@ annotate-code)
 	apply jq ".row = $row"
 	apply jq --arg t "$text" '.text = $t'
 	[ -n "$column" ] && apply jq ".column = $column"
-	[ -n "$type" ] && check_type "$type" && apply jq --arg t "$type" '.type = $"'
+	[ -n "$type" ] && check_type "$type" && apply jq --arg t "$type" '.type = $t'
 	[ -n "$rows" ] && apply jq ".rows = $rows"
 	[ -n "$columns" ] && apply jq ".columns = $columns"
 	;;
@@ -200,8 +200,8 @@ close-judgement)
 	if [ -n "$enum" ]; then
 		[ -z "$human" ] && crash status enum requires also human
 		check_status "$enum"
-		apply jq '.status.enum = "'"$enum"'"'
-		apply jq '.status.human = "'"$human"'"'
+		apply jq --arg e "$enum" '.status.enum = $e'
+		apply jq --arg h "$human" '.status.human = $h'
 	fi
 	;;
 esac
