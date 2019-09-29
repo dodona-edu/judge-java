@@ -71,11 +71,15 @@ public class Interactive implements TestRule {
             final Method main = this.cls.getMethod("main", String[].class);
             final String[] params = new String[0];
             main.invoke(null, (Object) params);
+            // Log the output.
+            this.logOutput();
         } catch (final NoSuchMethodException e) {
             Assert.fail("Method not found: public static void main(String[])");
         } catch (final IllegalAccessException e) {
             Assert.fail("Method could not be called: public static void main(String[])");
         } catch (final InvocationTargetException e) {
+            // Log the output.
+            this.logOutput();
             // An exception occurred while running the program.
             throw e.getCause();
         }
@@ -146,21 +150,20 @@ public class Interactive implements TestRule {
         return new Interactive(cls);
     }
     
-    /**
-     * Gets the contents of stdout as a string.
-     *
-     * @return fluent
-     */
-    public String output() {
-        final String result = this.stdout.getLogWithNormalizedLineSeparator().trim();
-        
+    private void logOutput() {
         // Write the output to the feedback stream.
         this.feedback.print("\n");
         this.feedback.println("Output:");
-        this.feedback.print(result);
-        
-        // Return the output.
-        return result;
+        this.feedback.print(this.stdout.getLogWithNormalizedLineSeparator());
+    }
+    
+    /**
+     * Gets the contents of stdout as a string.
+     *
+     * @return the output
+     */
+    public String output() {
+        return this.stdout.getLogWithNormalizedLineSeparator().trim();
     }
     
     /**
@@ -185,5 +188,14 @@ public class Interactive implements TestRule {
             // Unreachable.
             return -1;
         }
+    }
+    
+    /**
+     * Gets the contents of stdout as an array of lines.
+     *
+     * @return the output, split on newlines
+     */
+    public String[] outputLines() {
+        return this.stdout.getLogWithNormalizedLineSeparator().trim().split("\n");
     }
 }
