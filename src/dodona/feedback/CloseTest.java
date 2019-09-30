@@ -3,9 +3,9 @@ package dodona.feedback;
 public class CloseTest extends AcceptedClose {
 
     private String generated;
-    private Status status;
+    private StatusPair status;
 
-    public CloseTest(String generated, Status status, boolean accepted) {
+    public CloseTest(String generated, StatusPair status, boolean accepted) {
         super("close-test", accepted);
         this.generated = generated;
         this.status = status;
