@@ -2,6 +2,7 @@ package dodona.junit;
 
 import dodona.feedback.Message;
 import dodona.feedback.Status;
+import dodona.feedback.StatusPair;
 import dodona.feedback.StartTest;
 import dodona.feedback.CloseTest;
 
@@ -43,7 +44,7 @@ public class TestWriter implements TestRule {
         );
         close = new CloseTest(
             received == null ? "<null>" : received.toString(),
-            Status.WRONG, /* crashed tests won't even get this far */
+            new StatusPair(Status.WRONG, null), /* crashed tests won't even get this far */
             false /* This is only visible for failed tests, so we can assume this. */
         );
         if(expected == null && received != null) Assert.fail();
