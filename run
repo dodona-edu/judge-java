@@ -130,7 +130,7 @@ parse_compilation_errors() {
     # Loop over the compile log and process each message individually.
     compile_err=""
     while IFS= read -r line; do
-        if echo "$line" | egrep -q "^$filename:[0-9]+:"; then
+        if echo "$line" | egrep -q "^[^:]*[.]java:[0-9]+:"; then
             if [ -n "$compile_err" ]; then
                 if [ "$1" = 'student' ]; then
                     parse_compilation_error_student "$compile_err" </dev/zero
@@ -243,7 +243,7 @@ find "$judge/src" -name '*.java' \
 jar -cf "judge.jar" -C /tmp/build .
 
 # Compiling the tests
-if ! find "$resources" -name '*.java' | xargs javac -cp ".:${resources}:${worklibs}:${testlibs}:judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
+if ! find "$resources" -name '*.java' | xargs javac -Xdiags:verbose -cp ".:${resources}:${worklibs}:${testlibs}:judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
     compilation_failed "$compilation" \
         'Er ging iets mis tijdens het compileren van de testen voor deze oefening.' \
         'Fout in de testen' \
