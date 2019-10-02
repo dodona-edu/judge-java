@@ -230,10 +230,10 @@ public class Import {
 HERE
 if ! javac -cp . -d "$importclass" "$importclass/Import.java" >/dev/null 2>&1; then
     dodona start-context -f plain -d "Je diende geen ${filename%.java}-klasse in, waardoor de testen niet uitgevoerd kunnen worden."
+    dodona close-context -A
     if grep -q '^package' "$filename"; then
         dodona append-message -f callout -d 'Ben je zeker dat je de ingediende klasse in het default package plaatste?'
     fi
-    dodona close-context -A
     dodona close-tab
     dodona close-judgement -A -e 'compilation error' -h 'Compilatiefout'
     exit 0
