@@ -4,13 +4,10 @@ set -e
 
 # Temp files
 config="$(mktemp)"      # configuration
-result="$(mktemp)"      # result json
 compilation="$(mktemp)" # output of compilation
-execution="$(mktemp)"   # output of execution
-properties="$(mktemp)" # output of properties copying
 mkdir "/tmp/build"      # compilation directory
 
-trap "rm -rf '$config' '$result' '$compilation' '$execution' '/tmp/build'" EXIT
+trap "rm -rf '$config' '$compilation' '/tmp/build'" EXIT
 
 # Saving the configuration from stdin
 cat > "$config"
