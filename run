@@ -3,10 +3,10 @@
 set -e
 
 # Temp files
-config="$(mktemp)"                     # configuration
-compilation="$(mktemp)"                # output of compilation
-importclass="$(mktemp ImportXXX.java)" # to check imports
-mkdir "/tmp/build"                     # compilation directory
+config="$(mktemp)"         # configuration
+compilation="$(mktemp)"    # output of compilation
+importclass="$(mktemp -d)" # to check imports
+mkdir "/tmp/build"         # compilation directory
 
 trap "rm -rf '$config' '$compilation' '$importclass' '/tmp/build'" EXIT
 
@@ -223,12 +223,12 @@ if ! javac -cp ".:${worklibs}" -Xlint:all $compile_opt "$filename" > "$compilati
 fi
 
 # Verify the student submitted the requested class
-cat > "$importclass" <<HERE
-public class ${importclass%.java} {
+cat > "$importclass/Import.java" <<HERE
+public class Import {
     Class<?> userclass = ${filename%.java}.class;
 }
 HERE
-if ! javac -cp . "$importclass"; then
+if ! javac -cp . -d "$importclass" "$importclass/Import.java" >/dev/null 2>&1; then
     dodona start-context -f plain -d "Je diende geen ${filename%.java}-klasse in, waardoor de testen niet uitgevoerd kunnen worden."
     if grep -q '^package' "$filename"; then
         dodona append-message -f callout -d 'Ben je zeker dat je de ingediende klasse in het default package plaatste?'
