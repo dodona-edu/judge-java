@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 path_to_exercise="$1"
 
 [ -z "$path_to_exercise" ] \
