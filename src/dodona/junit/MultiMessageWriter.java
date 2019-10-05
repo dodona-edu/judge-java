@@ -48,8 +48,8 @@ public class MultiMessageWriter implements TestRule {
             public void evaluate() throws Throwable {
                 try {
                     base.evaluate();
-                } catch (Throwable e) {
-                    throw new AnnotatedThrowable(e, Collections.unmodifiableList(MultiMessageWriter.this.messages));
+                } catch (final Throwable e) {
+                    throw new AnnotatedThrowable(e, MultiMessageWriter.this.getMessages());
                 }
             }
         };
@@ -75,6 +75,15 @@ public class MultiMessageWriter implements TestRule {
      */
     public int append(final String content) {
         return this.append(new Message(this.defaultFormat, content, this.defaultPermission));
+    }
+    
+    /**
+     * Get all feedback messages.
+     *
+     * @return the feedback messages
+     */
+    public List<Message> getMessages() {
+        return Collections.unmodifiableList(this.messages);
     }
     
     /**
