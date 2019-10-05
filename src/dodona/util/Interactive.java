@@ -50,6 +50,7 @@ public class Interactive implements TestRule {
     }
     
     /**
+     * Allow messages to be appended in TestCarryingThrowable
      * Calls the .main()-method of the class under test.
      *
      * @param args commandline arguments
@@ -166,12 +167,11 @@ public class Interactive implements TestRule {
      * Logs the contents of stdin to the feedback stream.
      */
     private void logInput() {
-        this.feedback.println("Input:");
-        this.inputLines.forEach(this.feedback::println);
+        this.feedback.append(String.format("Input:\n%s", String.join("\n", this.inputLines)));
     }
     
     /**
-     * Logs the contents of stdout to the feedback stream, if allowed.
+     * Logs the contents of stdout to the feedback stream.
      */
     private void logOutput() {
         // Write the output to the feedback stream.

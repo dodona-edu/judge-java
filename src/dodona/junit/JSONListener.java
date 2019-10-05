@@ -98,6 +98,7 @@ public class JSONListener extends RunListener {
             if(thrown instanceof TestCarryingThrowable) {
                 write(new StartTestcase(Message.plain("")));
                 write(((TestCarryingThrowable) thrown).getStartTest());
+                ((TestCarryingThrowable) thrown).getMessages().stream().map(AppendMessage::new).forEach(this::write);
                 write(((TestCarryingThrowable) thrown).getCloseTest());
             } else if(thrown instanceof AssertionError) {
                 write(new EscalateStatus(Status.WRONG, "Fout"));
