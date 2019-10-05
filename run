@@ -256,6 +256,13 @@ fi
 dodona close-tab
 
 # Running the tests
-java -Xmx"${memory_limit}k" -cp ".:${worklibs}:${testlibs}:judge.jar:${resources}/properties" -Ddodona.language="${natural_language}" dodona.junit.JUnitJSON
+java -Xmx"${memory_limit}k" \
+     -cp ".:${worklibs}:${testlibs}:judge.jar:${resources}/properties" \
+     -Djava.security.manager -Djava.security.policy=="$judge/judge.policy" \
+     -Ddodona.language="${natural_language}" \
+     dodona.junit.JUnitJSON
+
+# to debug security failure, add:
+#-Djava.security.debug=access,failure \
 
 dodona close-judgement
