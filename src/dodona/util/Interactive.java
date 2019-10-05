@@ -1,6 +1,7 @@
 package dodona.util;
 
-import dodona.junit.MessageWriter;
+import dodona.junit.MultiMessageWriter;
+import dodona.junit.TestWriter;
 import org.junit.Assert;
 import org.junit.contrib.java.lang.system.SystemOutRule;
 import org.junit.contrib.java.lang.system.TextFromStandardInputStream;
@@ -26,8 +27,12 @@ public class Interactive implements TestRule {
     // once.
     private final Collection<String> inputLines = new ArrayList<>();
     
+    // The id of the feedback message that contains the contents of stdout.
+    private int outputMessageId = -1;
+    
     // Rules that are not treated as rules.
-    private final MessageWriter feedback = new MessageWriter();
+    private final TestWriter diff = new TestWriter();
+    private final MultiMessageWriter feedback = new MultiMessageWriter();
     private final TextFromStandardInputStream stdin = emptyStandardInputStream();
     private final SystemOutRule stdout = new SystemOutRule().enableLog().mute();
     
@@ -43,10 +48,28 @@ public class Interactive implements TestRule {
     @Override
     public Statement apply(final Statement base, final Description description) {
         // Ugly hack to use existing Rules as Rules.
-        return this.feedback.apply(this.stdin.apply(this.stdout.apply(
-            base, description),
+        return this.feedback.apply(this.diff.apply(this.stdin.apply(
+            this.stdout.apply(base, description),
+            description),
             description),
             description);
+    }
+    
+    /**
+     * Asserts that the contents of stdout match the expected value.
+     *
+     * @param expected the expected output
+     * @return fluent
+     */
+    public Interactive assertOutput(final String expected) {
+        // Remove the output from the feedback stream if any.
+        if (this.outputMessageId > -1) {
+            this.feedback.remove(this.outputMessageId);
+            this.outputMessageId = -1;
+        }
+        // Perform the comparison.
+        this.diff.compare(expected, this.output());
+        return this;
     }
     
     /**
@@ -174,10 +197,7 @@ public class Interactive implements TestRule {
      * Logs the contents of stdout to the feedback stream.
      */
     private void logOutput() {
-        // Write the output to the feedback stream.
-        this.feedback.print("\n");
-        this.feedback.println("Output:");
-        this.feedback.print(this.output());
+        this.outputMessageId = this.feedback.append(String.format("Output:\n%s", this.output()));
     }
     
     /**
