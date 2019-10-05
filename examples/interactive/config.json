@@ -6,7 +6,7 @@
     }
   },
   "evaluation": {
-    "filename": "InteractiveProgram.java",
+    "filename": "Echo.java",
     "handler": "java12"
   }
 }
