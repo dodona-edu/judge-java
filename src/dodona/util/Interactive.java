@@ -22,13 +22,9 @@ import static org.junit.contrib.java.lang.system.TextFromStandardInputStream.emp
 public class Interactive implements TestRule {
     private final Class<?> cls;
     
-    /**
-     * TextFromStandardInputStream by default only provides input to the stream
-     * once.
-     */
+    // TextFromStandardInputStream by default only provides input to the stream
+    // once.
     private final Collection<String> inputLines = new ArrayList<>();
-    
-    private boolean inputStarted = false;
     
     // Rules that are not treated as rules.
     private final MessageWriter feedback = new MessageWriter();
@@ -56,32 +52,34 @@ public class Interactive implements TestRule {
     /**
      * Calls the .main()-method of the class under test.
      *
+     * @param args commandline arguments
      * @return fluent
      * @throws Throwable exception thrown by the program
      */
-    public Interactive callMain() throws Throwable {
+    public Interactive callMain(final String... args) throws Throwable {
         // Clear anything on stdout before the test starts.
         this.stdout.clearLog();
         
         // Feed the input stream.
         this.stdin.provideLines(this.inputLines.toArray(new String[]{}));
         
+        // Log the input stream.
+        this.logInput();
+        
         // Execute the main method.
         try {
             final Method main = this.cls.getMethod("main", String[].class);
-            final String[] params = new String[0];
-            main.invoke(null, (Object) params);
-            // Log the output.
-            this.logOutput();
+            main.invoke(null, (Object) args);
         } catch (final NoSuchMethodException e) {
             Assert.fail("Method not found: public static void main(String[])");
         } catch (final IllegalAccessException e) {
             Assert.fail("Method could not be called: public static void main(String[])");
         } catch (final InvocationTargetException e) {
-            // Log the output.
-            this.logOutput();
             // An exception occurred while running the program.
             throw e.getCause();
+        } finally {
+            // Log the output.
+            this.logOutput();
         }
         
         // Fluent.
@@ -89,55 +87,69 @@ public class Interactive implements TestRule {
     }
     
     /**
-     * Feeds double arguments to stdin.
+     * @deprecated Use {@link #feedLines(double...)} instead.
+     */
+    @Deprecated
+    public Interactive feedLine(final double... args) {
+        return this.feedLines(args);
+    }
+    
+    /**
+     * Feeds double arguments to stdin, each on a separate line.
      *
      * @param args the doubles to send to stdin
      * @return fluent
      */
-    public Interactive feedLine(final double... args) {
+    public Interactive feedLines(final double... args) {
         Arrays.stream(args).mapToObj(Double::toString).forEach(this::feedLine);
         return this;
     }
     
     /**
-     * Feeds integer arguments to stdin.
+     * @deprecated Use {@link #feedLines(int...)} instead.
+     */
+    @Deprecated
+    public Interactive feedLine(final int... args) {
+        return this.feedLines(args);
+    }
+    
+    /**
+     * Feeds integer arguments to stdin, each on a separate line.
      *
      * @param args the integers to send to stdin
      * @return fluent
      */
-    public Interactive feedLine(final int... args) {
+    public Interactive feedLines(final int... args) {
         Arrays.stream(args).mapToObj(Integer::toString).forEach(this::feedLine);
         return this;
     }
     
     /**
-     * Feeds string arguments to stdin.
+     * @deprecated Use {@link #feedLines(String...)} instead.
+     */
+    @Deprecated
+    public Interactive feedLine(final String... args) {
+        return this.feedLines(args);
+    }
+    
+    /**
+     * Feeds string arguments to stdin, each on a separate line.
      *
      * @param args the text to send to stdin
      * @return fluent
      */
-    public Interactive feedLine(final String... args) {
+    public Interactive feedLines(final String... args) {
         Arrays.stream(args).forEach(this::feedLine);
         return this;
     }
     
     /**
-     * Feeds one input line to stdin and logs the line to the feedback stream.
+     * Feeds one input line to stdin.
      *
      * @param line the input line
      */
     private void feedLine(final String line) {
-        // Mark the start of input.
-        if (!this.inputStarted) {
-            this.feedback.println("Input:");
-            this.inputStarted = true;
-        }
-        
-        // Append the line to the buffer.
         this.inputLines.add(line);
-        
-        // Send the line to the feedback stream.
-        this.feedback.println(line);
     }
     
     /**
@@ -150,11 +162,22 @@ public class Interactive implements TestRule {
         return new Interactive(cls);
     }
     
+    /**
+     * Logs the contents of stdin to the feedback stream.
+     */
+    private void logInput() {
+        this.feedback.println("Input:");
+        this.inputLines.forEach(this.feedback::println);
+    }
+    
+    /**
+     * Logs the contents of stdout to the feedback stream, if allowed.
+     */
     private void logOutput() {
         // Write the output to the feedback stream.
         this.feedback.print("\n");
         this.feedback.println("Output:");
-        this.feedback.print(this.stdout.getLogWithNormalizedLineSeparator());
+        this.feedback.print(this.output());
     }
     
     /**
