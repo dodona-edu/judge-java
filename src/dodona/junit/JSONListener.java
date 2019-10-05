@@ -1,19 +1,18 @@
 package dodona.junit;
 
-import dodona.feedback.Status;
-import dodona.feedback.StartTab;
-import dodona.feedback.StartContext;
-import dodona.feedback.StartTestcase;
-import dodona.feedback.CloseTab;
-import dodona.feedback.CloseContext;
-import dodona.feedback.CloseTestcase;
-import dodona.feedback.Message;
 import dodona.feedback.AppendMessage;
+import dodona.feedback.CloseContext;
+import dodona.feedback.CloseTab;
+import dodona.feedback.CloseTestcase;
 import dodona.feedback.EscalateStatus;
+import dodona.feedback.Message;
+import dodona.feedback.StartContext;
+import dodona.feedback.StartTab;
+import dodona.feedback.StartTestcase;
+import dodona.feedback.Status;
 import dodona.i18n.I18nTestDescription;
 import dodona.i18n.Language;
 import dodona.json.Json;
-
 import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
@@ -23,6 +22,8 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
@@ -42,7 +43,7 @@ public class JSONListener extends RunListener {
         this.writer = writer;
         this.json = new Json();
     }
-    
+
     /**
      * Gets the given resource bundle for the current language, if it exists.
      *
@@ -88,7 +89,7 @@ public class JSONListener extends RunListener {
             write(new CloseContext(true));
         } else {
             Throwable thrown = failure.getException();
-            Message feedback = null;
+            List<Message> feedback = new ArrayList<>();
             if(thrown instanceof AnnotatedThrowable) {
                 feedback = ((AnnotatedThrowable) thrown).getFeedback();
                 thrown = thrown.getCause();
@@ -123,12 +124,12 @@ public class JSONListener extends RunListener {
                 }
             }
 
-            if(feedback != null) write(new AppendMessage(feedback));
+            feedback.stream().map(AppendMessage::new).forEach(this::write);
             write(new CloseTestcase(false));
             write(new CloseContext(false));
         }
     }
-    
+
     /**
      * Get the human-friendly version of the test name.
      *
@@ -140,7 +141,7 @@ public class JSONListener extends RunListener {
             .orElseGet(() -> getTestDescription(desc)
                 .orElse(desc.getDisplayName()));
     }
-    
+
     /**
      * Parse a @I18nTestDescription annotation.
      *
@@ -155,7 +156,7 @@ public class JSONListener extends RunListener {
                 .map(bundle::getString)
         );
     }
-    
+
     /**
      * Parse a @TestDescription annotation.
      *
@@ -209,8 +210,8 @@ public class JSONListener extends RunListener {
     public void testAssumptionFailure(Failure failure) {
         StringWriter stackCollector = new StringWriter();
         stackCollector.append("testAssumptionFailure in " +
-                              failure.getTestHeader() + ": " +
-                              failure.getException().getMessage() + "\n");
+            failure.getTestHeader() + ": " +
+            failure.getException().getMessage() + "\n");
         failure.getException().printStackTrace(new PrintWriter(stackCollector));
 
         write(new AppendMessage(Message.internalError(stackCollector.toString())));
