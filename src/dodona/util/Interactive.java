@@ -1,5 +1,6 @@
 package dodona.util;
 
+import dodona.junit.ExitException;
 import dodona.junit.MultiMessageWriter;
 import dodona.junit.TestWriter;
 import org.junit.Assert;
@@ -99,8 +100,11 @@ public class Interactive implements TestRule {
         } catch (final IllegalAccessException e) {
             Assert.fail("Method could not be called: public static void main(String[])");
         } catch (final InvocationTargetException e) {
-            // An exception occurred while running the program.
-            throw e.getCause();
+            // An exception occurred while running the program. Ignore this if
+            // it's because of a call to System.exit(), as this might be desired
+            if (!(e.getCause() instanceof ExitException)) {
+                throw e.getCause();
+            }
         } finally {
             // Log the output.
             this.logOutput();
