@@ -1,0 +1,12 @@
+{
+  "description": {
+    "names": {
+      "nl": "Gebruik van System.exit",
+      "en": "Use of System.exit"
+    }
+  },
+  "evaluation": {
+    "filename": "Exitter.java",
+    "handler": "java12"
+  }
+}
