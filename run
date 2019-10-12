@@ -86,7 +86,7 @@ parse_compilation_error_student() {
     dodona start-context
 
     # Determine the kind of compilation message.
-    if echo "$1" | grep -q "^$filename:[0-9]\+: warning:"; then
+    if echo "$1" | grep -q "^[^:]*[.]java:[0-9]\+: warning:"; then
         # warning
         type='warning'
         explanation="$(explain_compilation_warning "$1")"
@@ -106,8 +106,10 @@ parse_compilation_error_student() {
     # Get the code annotation information.
     annotation_column="$(echo "$1" | grep -o "\s*\^" | wc -c)"
     annotation_column="$((annotation_column - 2))"
-    annotation_row="$(echo "$1" | sed -n "s/^$filename:\([0-9]\+\):.*/\1/p")"
+    [ "$annotation_column" -lt 0 ] && annotation_column=0
+    annotation_row="$(echo "$1" | sed -n "s/^[^:]*[.]java:\([0-9]\+\):.*/\1/p")"
     annotation_row="$((annotation_row - 1))"
+    [ "$annotation_row" -lt 0 ] && annotation_row=0
 
     if [ -z "$explanation" ]; then
         # Use the first line of the compilation log.
