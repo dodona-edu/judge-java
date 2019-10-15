@@ -9,7 +9,7 @@
 {
   "command": "start-context",
   "description": {
-    "description": "Je diende geen Translated-klasse in, waardoor de testen niet uitgevoerd kunnen worden.",
+    "description": "Your submission does not contain a class \"Translated\", so your code could not be tested.",
     "format": "plain"
   }
 }
@@ -20,7 +20,7 @@
 {
   "command": "append-message",
   "message": {
-    "description": "Ben je zeker dat je de ingediende klasse in het default package plaatste?",
+    "description": "Are you sure you put your submitted class in the default package?",
     "format": "callout"
   }
 }
@@ -32,6 +32,6 @@
   "command": "close-judgement",
   "status": {
     "enum": "compilation error",
-    "human": "Compilatiefout"
+    "human": "Compilation error"
   }
 }
