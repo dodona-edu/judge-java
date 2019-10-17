@@ -9,6 +9,7 @@ for exercise in examples/*; do
         [ -f $input ] || continue
         base=${input%.submission}
         lang=${base##*.}
+        printf 'Testing %s ... ' $base
         workdir="$(mktemp -d)"
         cd "$workdir"
 
@@ -23,9 +24,9 @@ for exercise in examples/*; do
               , "time_limit": 30
               , "memory_limit": 1000000000
               , "source": "'"$judge/$input"'"
-              }' | "$judge"/run | jq | diff $judge/${base}.result -
+              }' | "$judge"/run | jq --sort-keys | diff $judge/${base}.result -
 
         cd "$judge"
-        echo $input passed >&2
+        echo passed
     done
 done

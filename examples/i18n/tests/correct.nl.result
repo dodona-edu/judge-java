@@ -10,16 +10,16 @@
   "command": "close-tab"
 }
 {
-  "title": "Test",
+  "command": "start-tab",
   "hidden": false,
-  "command": "start-tab"
+  "title": "Test"
 }
 {
+  "command": "start-context",
   "description": {
-    "format": "code",
-    "description": "Vertaalde Test"
-  },
-  "command": "start-context"
+    "description": "Vertaalde Test",
+    "format": "code"
+  }
 }
 {
   "accepted": true,
