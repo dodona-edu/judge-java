@@ -1,0 +1,31 @@
+#!/bin/sh
+set -e
+judge="$PWD"
+for exercise in examples/*; do
+    [ -d $exercise ] || continue
+    allow_compilation_warnings="$(jq -r '.evaluation.allow_compilation_warnings == true' $exercise/config.json)"
+    filename="$(jq -r '.evaluation.filename' "$exercise/config.json")"
+    for input in $exercise/tests/*.submission; do
+        [ -f $input ] || continue
+        base=${input%.submission}
+        lang=${base##*.}
+        workdir="$(mktemp -d)"
+        cd "$workdir"
+
+        [ -d $judge/$exercise/workdir ] && find $judge/$exercise/workdir -mindepth 1 -maxdepth 1 -print0 \
+            | xargs -0 --no-run-if-empty cp -r -t .
+        echo '{ "resources": "'"$judge/$exercise/evaluation"'"
+              , "judge": "'"$judge"'"
+              , "natural_language": "'"$lang"'"
+              , "workdir": "'"$workdir"'"
+              , "allow_compilation_warnings": "'"$allow_compilation_warnings"'"
+              , "filename": "'"$filename"'"
+              , "time_limit": 30
+              , "memory_limit": 1000000000
+              , "source": "'"$judge/$input"'"
+              }' | "$judge"/run | jq | diff $judge/${base}.result -
+
+        cd "$judge"
+        echo $input passed >&2
+    done
+done
