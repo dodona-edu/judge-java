@@ -24,7 +24,13 @@ for exercise in examples/*; do
               , "time_limit": 30
               , "memory_limit": 1000000000
               , "source": "'"$judge/$input"'"
-              }' | "$judge"/run | jq --sort-keys | diff $judge/${base}.result -
+              }' \
+              | "$judge"/run \
+              | jq --sort-keys 'if(.command == "append-message")
+                    then .message.description |= gsub(":[0-9]+\\)(?=\n|$)"; ":X)")
+                    else .
+                end' \
+              | diff $judge/${base}.result -
 
         cd "$judge"
         echo passed
