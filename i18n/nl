@@ -13,6 +13,6 @@ i18n_workdir_compilation_message='Er ging iets mis tijdens het compileren van de
 i18n_workdir_compilation_summary='Fout in de startcode'
 i18n_user_compilation_message='Je code kon niet worden gecompileerd en bijgevolg niet worden getest. De compiler rapporteerde %s.'
 i18n_class_not_submitted='Je diende geen %s-klasse in, waardoor de testen niet uitgevoerd kunnen worden.'
-i18n_default_package='Ben je zeker dat je de ingediende klasse in het default package plaatste?'
+i18n_default_package='Ben je zeker dat je de ingediende klasse in het default package plaatste? Je klasse komt in het default package terecht als je jouw package statement verwijdert.'
 i18n_test_compilation_message='Er ging iets mis tijdens het compileren van de testen voor deze oefening.'
 i18n_test_compilation_summary='Fout in de testen'
