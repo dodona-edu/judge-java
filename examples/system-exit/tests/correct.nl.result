@@ -38,7 +38,7 @@
 {
   "command": "append-message",
   "message": {
-    "description": "Caused by dodona.junit.ExitException: System.exit(1) called.\n at dodona.junit.JUnitJSON$NoExitSecurityManager.checkExit(JUnitJSON.java:X)\n at java.lang.Runtime.exit(Runtime.java:X)\n at java.lang.System.exit(System.java:X)\n at Exitter.exit1(Exitter.java:X)\n at Unaware.exit1ShouldFail(Unaware.java:X)",
+    "description": "Caused by dodona.junit.ExitException: System.exit(1) called.",
     "format": "code"
   }
 }
@@ -85,7 +85,7 @@
 {
   "command": "append-message",
   "message": {
-    "description": "Caused by dodona.junit.ExitException: System.exit(0) called.\n at dodona.junit.JUnitJSON$NoExitSecurityManager.checkExit(JUnitJSON.java:X)\n at java.lang.Runtime.exit(Runtime.java:X)\n at java.lang.System.exit(System.java:X)\n at Exitter.exit0(Exitter.java:X)\n at Unaware.exit0ShouldFail(Unaware.java:X)",
+    "description": "Caused by dodona.junit.ExitException: System.exit(0) called.",
     "format": "code"
   }
 }
