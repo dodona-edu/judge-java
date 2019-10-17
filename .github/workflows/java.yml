@@ -11,8 +11,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Install dependencies
-      run: |
-        apk add --no-cache jq=1.6-r0
+      run: apk add --no-cache jq=1.6-r0
     - name: Evaluate all example exercises
-      run: |
-        cd testing && for d in ../examples/*; do ./clean.sh && ./test.sh $d; done || exit 1
+      run: ./integration-tests
