@@ -27,7 +27,7 @@ for exercise in examples/*; do
               }' \
               | "$judge"/run \
               | jq --sort-keys 'if(.command == "append-message")
-                    then .message.description |= gsub(":[0-9]+\\)(?=\n|$)"; ":X)")
+                    then .message.description |= gsub("\n at [^\n]+\\([^)]+\\)"; "")
                     else .
                 end' \
               | diff $judge/${base}.result -
