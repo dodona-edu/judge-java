@@ -1,0 +1,212 @@
+{
+  "command": "start-judgement"
+}
+{
+  "command": "start-tab",
+  "hidden": true,
+  "title": "Compiler"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "start-tab",
+  "hidden": false,
+  "title": "Test"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "exit1ShouldFail(Unaware)",
+    "format": "code"
+  }
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "dodona.junit.ExitException: System.exit(1) called.",
+    "format": "code"
+  }
+}
+{
+  "command": "escalate-status",
+  "status": {
+    "enum": "runtime error",
+    "human": "Uitvoeringsfout"
+  }
+}
+{
+  "command": "append-message",
+  "message": {
+    "description": "Caused by dodona.junit.ExitException: System.exit(1) called.\n at dodona.junit.JUnitJSON$NoExitSecurityManager.checkExit(JUnitJSON.java:50)\n at java.lang.Runtime.exit(Runtime.java:107)\n at java.lang.System.exit(System.java:971)\n at Exitter.exit1(Exitter.java:8)\n at Unaware.exit1ShouldFail(Unaware.java:13)",
+    "format": "code"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "noExitShouldPass(Unaware)",
+    "format": "code"
+  }
+}
+{
+  "accepted": true,
+  "command": "close-context"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "exit0ShouldFail(Unaware)",
+    "format": "code"
+  }
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "dodona.junit.ExitException: System.exit(0) called.",
+    "format": "code"
+  }
+}
+{
+  "command": "escalate-status",
+  "status": {
+    "enum": "runtime error",
+    "human": "Uitvoeringsfout"
+  }
+}
+{
+  "command": "append-message",
+  "message": {
+    "description": "Caused by dodona.junit.ExitException: System.exit(0) called.\n at dodona.junit.JUnitJSON$NoExitSecurityManager.checkExit(JUnitJSON.java:50)\n at java.lang.Runtime.exit(Runtime.java:107)\n at java.lang.System.exit(System.java:971)\n at Exitter.exit0(Exitter.java:4)\n at Unaware.exit0ShouldFail(Unaware.java:8)",
+    "format": "code"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "start-tab",
+  "hidden": false,
+  "title": "Test"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "exit0IsOK(Usage)",
+    "format": "code"
+  }
+}
+{
+  "accepted": true,
+  "command": "close-context"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "exit1IsNotOK(Usage)",
+    "format": "code"
+  }
+}
+{
+  "command": "escalate-status",
+  "status": {
+    "enum": "wrong",
+    "human": "Fout"
+  }
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "expected:<0> but was:<1>",
+    "format": "code"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "start-tab",
+  "hidden": false,
+  "title": "Test"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "noExitShouldPass(Interference)",
+    "format": "code"
+  }
+}
+{
+  "accepted": true,
+  "command": "close-context"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "exit0IsOK(Interference)",
+    "format": "code"
+  }
+}
+{
+  "accepted": true,
+  "command": "close-context"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "exit1shouldFail(Interference)",
+    "format": "code"
+  }
+}
+{
+  "command": "escalate-status",
+  "status": {
+    "enum": "wrong",
+    "human": "Fout"
+  }
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "Wrong exit status expected:<0> but was:<1>",
+    "format": "code"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "close-judgement"
+}
