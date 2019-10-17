@@ -1,0 +1,37 @@
+{
+  "command": "start-judgement"
+}
+{
+  "command": "start-tab",
+  "hidden": true,
+  "title": "Compiler"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "Je diende geen Translated-klasse in, waardoor de testen niet uitgevoerd kunnen worden.",
+    "format": "plain"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "append-message",
+  "message": {
+    "description": "Ben je zeker dat je de ingediende klasse in het default package plaatste?",
+    "format": "callout"
+  }
+}
+{
+  "command": "close-tab"
+}
+{
+  "accepted": false,
+  "command": "close-judgement",
+  "status": {
+    "enum": "compilation error",
+    "human": "Compilatiefout"
+  }
+}
