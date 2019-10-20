@@ -1,0 +1,119 @@
+{
+  "command": "start-judgement"
+}
+{
+  "command": "start-tab",
+  "hidden": true,
+  "title": "Compiler"
+}
+{
+  "command": "append-message",
+  "message": {
+    "description": "Je code kon niet worden gecompileerd en bijgevolg niet worden getest.",
+    "format": "callout"
+  }
+}
+{
+  "command": "start-context"
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "Compilatiefout: De naam van je klasse hoort \"A\" te zijn.",
+    "format": "plain"
+  }
+}
+{
+  "command": "append-message",
+  "message": {
+    "description": "A.java:1: error: class B is public, should be declared in a file named B.java\npublic class B {\n       ^",
+    "format": "code"
+  }
+}
+{
+  "column": 7,
+  "command": "annotate-code",
+  "row": 0,
+  "text": "De naam van je klasse hoort \"A\" te zijn.",
+  "type": "error"
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "command": "close-context"
+}
+{
+  "command": "start-context"
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "Compilatiefout: De naam van je klasse hoort \"A\" te zijn.",
+    "format": "plain"
+  }
+}
+{
+  "command": "append-message",
+  "message": {
+    "description": "A.java:1: error: class B is public, should be declared in a file named B.java\npublic class B {\n       ^",
+    "format": "code"
+  }
+}
+{
+  "column": 7,
+  "command": "annotate-code",
+  "row": 0,
+  "text": "De naam van je klasse hoort \"A\" te zijn.",
+  "type": "error"
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "command": "close-context"
+}
+{
+  "command": "start-context"
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "Compilatiefout",
+    "format": "plain"
+  }
+}
+{
+  "command": "append-message",
+  "message": {
+    "description": "A.java:2: error: cannot access A\n    private static A a;\n                   ^\nA.java\n    file does not contain class A\n    Please remove or make sure it appears in the correct subdirectory of the sourcepath.",
+    "format": "code"
+  }
+}
+{
+  "column": 19,
+  "command": "annotate-code",
+  "row": 1,
+  "text": "cannot access A",
+  "type": "error"
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "command": "close-context"
+}
+{
+  "command": "close-tab"
+}
+{
+  "accepted": false,
+  "command": "close-judgement",
+  "status": {
+    "enum": "compilation error",
+    "human": "Compilatiefout"
+  }
+}

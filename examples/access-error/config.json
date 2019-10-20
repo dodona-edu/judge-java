@@ -1,0 +1,12 @@
+{
+  "description": {
+    "names": {
+      "nl": "Foute klasse die de juist klasse gebruikt.",
+      "en": "Submit wrong class using the right class."
+    }
+  },
+  "evaluation": {
+    "filename": "A.java",
+    "handler": "java12"
+  }
+}
