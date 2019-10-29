@@ -50,5 +50,26 @@ public class TestWriter implements TestRule {
         if(expected == null && received != null) Assert.fail();
         if(expected != null && !expected.equals(received)) Assert.fail();
     }
+    
+    public void compare(final String description,
+                        final Double expected,
+                        final Double received,
+                        final double delta) {
+        start = new StartTest(
+            expected == null ? "<null>" : expected.toString(),
+            description == null ? null : Message.code(description)
+        );
+        close = new CloseTest(
+            received == null ? "<null>" : received.toString(),
+            new StatusPair(Status.WRONG, null), /* crashed tests won't even get this far */
+            false /* This is only visible for failed tests, so we can assume this. */
+        );
+    
+        if (expected == null) {
+            if (received != null) Assert.fail();
+        } else if (received == null || Math.abs(expected - received) > delta) {
+            Assert.fail();
+        }
+    }
 
 }
