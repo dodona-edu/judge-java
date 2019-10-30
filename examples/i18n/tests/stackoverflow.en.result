@@ -1,0 +1,58 @@
+{
+  "command": "start-judgement"
+}
+{
+  "command": "start-tab",
+  "hidden": true,
+  "title": "Compiler"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "start-tab",
+  "hidden": false,
+  "title": "Test"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "Translated Test",
+    "format": "code"
+  }
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "java.lang.StackOverflowError",
+    "format": "code"
+  }
+}
+{
+  "command": "escalate-status",
+  "status": {
+    "enum": "runtime error",
+    "human": "Uitvoeringsfout"
+  }
+}
+{
+  "command": "append-message",
+  "message": {
+    "description": "Caused by java.lang.StackOverflowError\n ...",
+    "format": "code"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "close-judgement"
+}
