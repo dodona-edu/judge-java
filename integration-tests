@@ -33,6 +33,7 @@ for exercise in examples/*; do
               | diff $judge/${base}.result -
 
         cd "$judge"
+        rm -r "$workdir"
         echo passed
     done
 done
