@@ -1,0 +1,56 @@
+{
+  "command": "start-judgement"
+}
+{
+  "command": "start-tab",
+  "hidden": true,
+  "title": "Compiler"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "start-tab",
+  "hidden": false,
+  "title": "Test"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "test(TestWriterTest)",
+    "format": "code"
+  }
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "",
+    "format": "plain"
+  }
+}
+{
+  "command": "start-test",
+  "expected": "hello"
+}
+{
+  "accepted": false,
+  "command": "close-test",
+  "generated": "hallo",
+  "status": {
+    "enum": "wrong"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "close-judgement"
+}

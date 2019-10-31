@@ -1,0 +1,51 @@
+{
+  "command": "start-judgement"
+}
+{
+  "command": "start-tab",
+  "hidden": true,
+  "title": "Compiler"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "start-tab",
+  "hidden": false,
+  "title": "Test"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "test(TestWriterTest)",
+    "format": "code"
+  }
+}
+{
+  "command": "escalate-status",
+  "status": {
+    "enum": "wrong",
+    "human": "Fout"
+  }
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "Missing method: String hello()",
+    "format": "code"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "close-judgement"
+}
