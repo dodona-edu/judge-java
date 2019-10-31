@@ -1,0 +1,12 @@
+{
+  "description": {
+    "names": {
+      "nl": "Gebruik van de TestWriter",
+      "en": "Use of the TestWriter"
+    }
+  },
+  "evaluation": {
+    "filename": "TestWriter.java",
+    "handler": "java12"
+  }
+}
