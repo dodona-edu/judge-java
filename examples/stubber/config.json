@@ -1,0 +1,12 @@
+{
+  "description": {
+    "names": {
+      "nl": "Gebruik van de AssertionStubber",
+      "en": "Use of the AssertionStubber"
+    }
+  },
+  "evaluation": {
+    "filename": "Stubber.java",
+    "handler": "java12"
+  }
+}
