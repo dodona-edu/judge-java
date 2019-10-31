@@ -31,7 +31,7 @@
 {
   "command": "start-testcase",
   "description": {
-    "description": "Missing method: boolean isStubbed()",
+    "description": "Inaccessible method: boolean isStubbed(). Method should have a \"public\" modifier.",
     "format": "code"
   }
 }

@@ -59,7 +59,20 @@ public class AssertionStubber {
             }
             try {
                 constructor = solution.getConstructor(constructionParameterTypes);
-            } catch(NoSuchMethodException e) { missingConstructor(solution, constructionParameterTypes); }
+            } catch(NoSuchMethodException e) {
+                // Constructor might have a non-public visibility, attempt to
+                // find it.
+                try {
+                    solution.getDeclaredConstructor(constructionParameterTypes);
+                    // This point can only be reached if the above call did not
+                    // throw an exception -> constructor exists but is not
+                    // public.
+                    inaccessibleConstructor(solution, constructionParameterTypes);
+                } catch (final NoSuchMethodException ex) {
+                    // Constructor not found -> really doesn't exist.
+                    missingConstructor(solution, constructionParameterTypes);
+                }
+            }
 
             solutionClass = solution;
             try {
@@ -89,6 +102,16 @@ public class AssertionStubber {
             if(solutionMethod.isPresent()) {
                 return solutionMethod.get().invoke(solutionInstance, args);
             } else {
+                // Method might have a non-public visibility, attempt to find it.
+                try {
+                    solutionClass.getDeclaredMethod(method.getName(), method.getParameterTypes());
+                    // This point can only be reached if the above call did not
+                    // throw an exception -> method exists but is not public.
+                    inaccessibleMethod(method);
+                } catch (final NoSuchMethodException ex) {
+                    // Method not found -> really doesn't exist.
+                    missingMethod(method);
+                }
                 missingMethod(method);
                 return null;
             }
@@ -99,23 +122,31 @@ public class AssertionStubber {
     /* =========================================================================
      * Assertions
      */
-    private String missingMethod(String returnName, Class<?>... parameterTypes) {
+    private static void inaccessibleConstructor(final Class<?> solution, final Class<?>... constructionParameterTypes) {
+        Assert.fail("Inaccessible constructor: " + missingMethod(solution.getSimpleName(), constructionParameterTypes) + ". Constructor should have a \"public\" modifier.");
+    }
+    
+    private static void inaccessibleMethod(final Method method) {
+        Assert.fail("Inaccessible method: " + missingMethod(method.getReturnType().getSimpleName() + " " + method.getName(), method.getParameterTypes()) + ". Method should have a \"public\" modifier.");
+    }
+    
+    private static String missingMethod(String returnName, Class<?>... parameterTypes) {
         return returnName + "(" + Stream.of(parameterTypes).map(Class::getSimpleName).collect(Collectors.joining(",")) + ")";
     }
 
-    private void missingConstructor(Class<?> solution, Class<?>... constructionParameterTypes) {
+    private static void missingConstructor(Class<?> solution, Class<?>... constructionParameterTypes) {
         Assert.fail("Missing constructor: " + missingMethod(solution.getSimpleName(), constructionParameterTypes));
     }
 
-    private void missingMethod(Method method) {
+    private static void missingMethod(Method method) {
         Assert.fail("Missing method: " + missingMethod(method.getReturnType().getSimpleName() + " " + method.getName(), method.getParameterTypes()));
     }
 
-    private void testclassIsAbstract() {
+    private static void testclassIsAbstract() {
         Assert.fail("Tested class is abstract");
     }
 
-    private void illegalConstructorAccess() {
+    private static void illegalConstructorAccess() {
         Assert.fail("Illegal Constructor access");
     }
 
