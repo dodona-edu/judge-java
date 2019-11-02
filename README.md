@@ -33,7 +33,7 @@ Please use descriptive names in `description/names/...`, these will be shown to 
 `evaluation/filename` is the name of the file the students should submit. As this is a Java judge, that's the name of the public class they should submit + `.java`.
 
 Other configuration values used by the Java judge are:
-- `evaluation/allow_compilation_warnings` - A boolean indicating whether the judge should allow compilation warnings, or should fail compilation if warnings were reported. This defaults to `true` if not set.
+- `evaluation/allow_compilation_warnings` - A boolean indicating whether the judge should allow compilation warnings, or should fail compilation if warnings were reported. This defaults to `false` if not set, meaning that compilation will fail if warnings occur.
 - `evaluation/time_limit` - For how long the tests can continue before a "time limit exceeded" is reported.
 - `evaluation/memory_limit` - How much memory the docker is given.
 - `evaluation/network_enabled` - Whether the code inside the docker can use the network. Disabled by default and should be enabled sparingly. While we may try to keep everything as secure as possible, a network allows for remote shells. Even if these remote shells have limited permissions, talented students might try to escalate them.
