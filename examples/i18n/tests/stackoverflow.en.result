@@ -12,7 +12,7 @@
 {
   "command": "start-tab",
   "hidden": false,
-  "title": "Test"
+  "title": "Translated title"
 }
 {
   "command": "start-context",
