@@ -1,9 +1,11 @@
 import dodona.i18n.Language;
+import dodona.i18n.I18nTabTitle;
 import dodona.i18n.I18nTestDescription;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+@I18nTabTitle("tab_title")
 public class TranslatedTest {
 
     @Test

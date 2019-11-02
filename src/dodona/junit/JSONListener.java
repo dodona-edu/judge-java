@@ -10,6 +10,7 @@ import dodona.feedback.StartContext;
 import dodona.feedback.StartTab;
 import dodona.feedback.StartTestcase;
 import dodona.feedback.Status;
+import dodona.i18n.I18nTabTitle;
 import dodona.i18n.I18nTestDescription;
 import dodona.i18n.Language;
 import dodona.json.Json;
@@ -72,8 +73,9 @@ public class JSONListener extends RunListener {
     public void afterExecution() {}
 
     public void beforeTab(Description description) {
-        TabTitle tabAnnotation = description.getAnnotation(TabTitle.class);
-        String title = tabAnnotation == null ? "Test" : tabAnnotation.value();
+        final String title = this.getI18nTabTitle(description)
+            .orElseGet(() -> this.getTabTitle(description)
+                .orElse(TabTitle.DEFAULT));
         write(new StartTab(title));
     }
 
@@ -145,7 +147,22 @@ public class JSONListener extends RunListener {
             .orElseGet(() -> getTestDescription(desc)
                 .orElse(desc.getDisplayName()));
     }
-
+    
+    /**
+     * Parse a @I18nTabTitle annotation.
+     *
+     * @param desc the description
+     * @return the value of the I18nTabTitle annotation if available
+     */
+    private Optional<String> getI18nTabTitle(final Description desc) {
+        return Optional.ofNullable(this.descriptions).flatMap(bundle ->
+            Optional.ofNullable(desc.getAnnotation(I18nTabTitle.class))
+                .map(I18nTabTitle::value)
+                .filter(bundle::containsKey)
+                .map(bundle::getString)
+        );
+    }
+    
     /**
      * Parse a @I18nTestDescription annotation.
      *
@@ -159,6 +176,16 @@ public class JSONListener extends RunListener {
                 .filter(bundle::containsKey)
                 .map(bundle::getString)
         );
+    }
+    
+    /**
+     * Parse a @TabTitle annotation.
+     *
+     * @param desc the description
+     * @return the value of the TabTitle annotation if available
+     */
+    private Optional<String> getTabTitle(final Description desc) {
+        return Optional.ofNullable(desc.getAnnotation(TabTitle.class)).map(TabTitle::value);
     }
 
     /**
