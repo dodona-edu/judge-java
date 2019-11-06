@@ -7,6 +7,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -85,36 +86,23 @@ public class AssertionStubber {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            Optional<Method> solutionMethod = Optional.empty();
-            try {
-                solutionMethod = Optional.of(solutionClass.getMethod(method.getName(), method.getParameterTypes()));
-            } catch(NoSuchMethodException e) {
-                solutionMethod = Arrays.stream(solutionClass.getMethods())
-                    .filter(c -> method.getName().equals(c.getName()))
-                    .filter(c -> method.getParameterCount() == c.getParameterCount())
-                    .filter(c -> method.getReturnType().isAssignableFrom(c.getReturnType()))
-                    .filter(c -> IntStream
-                        .range(0, method.getParameterCount())
-                        .allMatch(i -> c.getParameterTypes()[i].isInstance(args[i])))
-                    .findFirst();
-            }
+            Optional<Method> solutionMethod = Stream
+                .concat(Arrays.stream(solutionClass.getMethods()), // prefer public methods
+                        Arrays.stream(solutionClass.getDeclaredMethods())) // but include privates
+                .filter(m -> method.getName().equals(m.getName()))
+                .filter(m -> method.getParameterCount() == m.getParameterCount())
+                .filter(m -> Assignable.check(method.getGenericReturnType(), m.getGenericReturnType()))
+                .filter(m -> IntStream
+                    .range(0, method.getParameterCount())
+                    .allMatch(i -> Assignable.check(
+                        method.getGenericParameterTypes()[i],
+                        m.getGenericParameterTypes()[i])))
+                .findFirst();
 
-            if(solutionMethod.isPresent()) {
-                return solutionMethod.get().invoke(solutionInstance, args);
-            } else {
-                // Method might have a non-public visibility, attempt to find it.
-                try {
-                    solutionClass.getDeclaredMethod(method.getName(), method.getParameterTypes());
-                    // This point can only be reached if the above call did not
-                    // throw an exception -> method exists but is not public.
-                    inaccessibleMethod(method);
-                } catch (final NoSuchMethodException ex) {
-                    // Method not found -> really doesn't exist.
-                    missingMethod(method);
-                }
-                missingMethod(method);
-                return null;
-            }
+            if(!solutionMethod.isPresent()) missingMethod(method);
+            if(!Modifier.isPublic(solutionMethod.get().getModifiers())) inaccessibleMethod(method);
+
+            return solutionMethod.get().invoke(solutionInstance, args);
         }
 
     }
