@@ -4,7 +4,7 @@ import dodona.feedback.CloseTest;
 import dodona.feedback.Message;
 import dodona.feedback.StartTest;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TestCarryingThrowable extends AssertionError {
@@ -22,7 +22,7 @@ public class TestCarryingThrowable extends AssertionError {
      * @param closeTest the end command of the test
      */
     public TestCarryingThrowable(final StartTest startTest, final CloseTest closeTest) {
-        this(startTest, Collections.emptyList(), closeTest);
+        this(startTest, new ArrayList<>(), closeTest);
     }
     
     /**
@@ -39,6 +39,9 @@ public class TestCarryingThrowable extends AssertionError {
         this.closeTest = closeTest;
         this.messages = messages;
         this.startTest = startTest;
+        if(closeTest.wasTruncated()) {
+            this.messages.add(Message.plain("Je uitvoer werd ingekort."));
+        }
     }
     
     public CloseTest getCloseTest() {

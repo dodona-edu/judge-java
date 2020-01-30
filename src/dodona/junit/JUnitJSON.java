@@ -12,6 +12,7 @@ import dodona.json.Json;
 
 public class JUnitJSON {
     public static final String PROPERTY_LANGUAGE = "dodona.language";
+    public static final String PROPERTY_OUTPUT_CUTOFF = "dodona.output_cutoff";
 
     public static void main(String... args) {
         Class<?> testSuite = null;
