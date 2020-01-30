@@ -17,7 +17,18 @@
 {
   "command": "start-context",
   "description": {
-    "description": "testIntArrayList(StubberTest)",
+    "description": "testExisting(StubberTest)",
+    "format": "code"
+  }
+}
+{
+  "accepted": true,
+  "command": "close-context"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "testPrivate(StubberTest)",
     "format": "code"
   }
 }
@@ -31,7 +42,7 @@
 {
   "command": "start-testcase",
   "description": {
-    "description": "Missing method: void intArrayList(ArrayList).",
+    "description": "Inaccessible constructor: private Stubber(). Constructor should have a \"public\" modifier.",
     "format": "code"
   }
 }
@@ -46,7 +57,7 @@
 {
   "command": "start-context",
   "description": {
-    "description": "testIntArray(StubberTest)",
+    "description": "testNonExisting(StubberTest)",
     "format": "code"
   }
 }
@@ -60,7 +71,7 @@
 {
   "command": "start-testcase",
   "description": {
-    "description": "Missing method: void intArray(int[]).",
+    "description": "Missing constructor: cannot call Stubber(1.0).",
     "format": "code"
   }
 }
@@ -70,6 +81,28 @@
 }
 {
   "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "testSupertype(StubberTest)",
+    "format": "code"
+  }
+}
+{
+  "accepted": true,
+  "command": "close-context"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "testSubtype(StubberTest)",
+    "format": "code"
+  }
+}
+{
+  "accepted": true,
   "command": "close-context"
 }
 {
