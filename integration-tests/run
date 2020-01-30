@@ -12,8 +12,7 @@ for test in integration-tests/*; do
     workdir="$(mktemp -d)"
     cd "$workdir"
 
-    [ -d "$judge/$test/workdir" ] && find "$judge/$test/workdir" -mindepth 1 -maxdepth 1 -print0 \
-        | xargs -0 --no-run-if-empty cp -r -t .
+    [ -d "$judge/$test/workdir" ] && find "$judge/$test/workdir" -mindepth 1 -maxdepth 1 -exec cp -r \{\} . \;
     echo '{ "resources": "'"$judge/$test/evaluation/"'"
           , "judge": "'"$judge"'"
           , "natural_language": "'"$lang"'"
