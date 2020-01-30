@@ -10,7 +10,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -18,23 +20,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class AssertionStubber {
-
-
-    /* =========================================================================
-     * Civilisation
-     */
-    private static final Map<Class<?>, Class<?>> primitives = new HashMap<>();
-    static {
-        primitives.put(Boolean.class, boolean.class);
-        primitives.put(Character.class, char.class);
-        primitives.put(Byte.class, byte.class);
-        primitives.put(Short.class, short.class);
-        primitives.put(Integer.class, int.class);
-        primitives.put(Long.class, long.class);
-        primitives.put(Float.class, float.class);
-        primitives.put(Double.class, double.class);
-        primitives.put(Void.class, void.class);
-    }
 
     public <T> T stub(Class<T> expectedInterface, Class<?> solution, Object... constructionParameters) {
         return expectedInterface.cast(Proxy.newProxyInstance(
@@ -50,38 +35,40 @@ public class AssertionStubber {
         private Object solutionInstance;
 
         public AssertingInvocationHandler(Class<?> solution, Object... constructionParameters) {
-            // Getting the relevant constructor.
+            if(Modifier.isAbstract(solution.getModifiers())) testclassIsAbstract();
+
+            Iterator<Constructor<?>> solutionConstructors = Stream
+                .of(solution.getDeclaredConstructors()) // returns all constructors (also default)
+                .filter(c -> c.getParameterCount() == constructionParameters.length)
+                .sorted(Comparator
+                    .comparingInt((Constructor c) -> Modifier.isPublic(c.getModifiers()) ? 0 : 1) // prefer public
+                    .thenComparing((c1, c2) -> { // prefer specific
+                        for(int i = 0; i < constructionParameters.length; i++) {
+                            boolean c1c2 = Assignable.check(c1.getGenericParameterTypes()[i], c2.getGenericParameterTypes()[i]);
+                            boolean c2c1 = Assignable.check(c2.getGenericParameterTypes()[i], c1.getGenericParameterTypes()[i]);
+                            if(c1c2 && !c2c1) return 1; // c2 is more specific
+                            if(!c1c2 && c2c1) return -1; // c1 is more specific
+                        }
+                        return 0; // equal or not comparable
+                    }))
+                .iterator();
+
             Constructor<?> constructor = null;
-            Class<?>[] constructionParameterTypes = new Class<?>[constructionParameters.length];
-            for(int i = 0; i < constructionParameters.length; i++) {
-                constructionParameterTypes[i] = primitives.getOrDefault(
-                    constructionParameters[i].getClass(),
-                    constructionParameters[i].getClass());
-            }
-            try {
-                constructor = solution.getConstructor(constructionParameterTypes);
-            } catch(NoSuchMethodException e) {
-                // Constructor might have a non-public visibility, attempt to
-                // find it.
+            while(solutionInstance == null && solutionConstructors.hasNext()) {
+                constructor = solutionConstructors.next();
+                constructor.setAccessible(true); // private should not hinder us (doesn't modify modifiers)
                 try {
-                    solution.getDeclaredConstructor(constructionParameterTypes);
-                    // This point can only be reached if the above call did not
-                    // throw an exception -> constructor exists but is not
-                    // public.
-                    inaccessibleConstructor(solution, constructionParameterTypes);
-                } catch (final NoSuchMethodException ex) {
-                    // Constructor not found -> really doesn't exist.
-                    missingConstructor(solution, constructionParameterTypes);
+                    solutionInstance = constructor.newInstance(constructionParameters);
+                    solutionClass = solution;
+                } catch(IllegalArgumentException e) { // not the right constructor (wrong types)
+                } catch(InstantiationException e) { // not the right constructor
+                } catch(IllegalAccessException e) { // not the right constructor
+                } catch(InvocationTargetException e) { throw new RuntimeException(e.getCause());
                 }
             }
 
-            solutionClass = solution;
-            try {
-                solutionInstance = constructor.newInstance(constructionParameters);
-            } catch(InstantiationException e) { testclassIsAbstract();
-            } catch(IllegalAccessException e) { illegalConstructorAccess();
-            } catch(InvocationTargetException e) { throw new RuntimeException(e.getCause());
-            }
+            if(solutionInstance == null) missingConstructor(solution, constructionParameters);
+            if(!Modifier.isPublic(constructor.getModifiers())) inaccessibleConstructor(constructor);
         }
 
         @Override
@@ -110,32 +97,35 @@ public class AssertionStubber {
     /* =========================================================================
      * Assertions
      */
-    private static void inaccessibleConstructor(final Class<?> solution, final Class<?>... constructionParameterTypes) {
-        Assert.fail("Inaccessible constructor: " + missingMethod(solution.getSimpleName(), constructionParameterTypes) + ". Constructor should have a \"public\" modifier.");
+    private static void inaccessibleConstructor(final Constructor<?> constructor) {
+        Assert.fail("Inaccessible constructor: " + constructor + ". Constructor should have a \"public\" modifier.");
     }
     
     private static void inaccessibleMethod(final Method method) {
-        Assert.fail("Inaccessible method: " + missingMethod(method.getReturnType().getSimpleName() + " " + method.getName(), method.getParameterTypes()) + ". Method should have a \"public\" modifier.");
-    }
-    
-    private static String missingMethod(String returnName, Class<?>... parameterTypes) {
-        return returnName + "(" + Stream.of(parameterTypes).map(Class::getSimpleName).collect(Collectors.joining(",")) + ")";
+        Assert.fail("Inaccessible method: " + describeMethod(method) + ". Method should have a \"public\" modifier.");
     }
 
-    private static void missingConstructor(Class<?> solution, Class<?>... constructionParameterTypes) {
-        Assert.fail("Missing constructor: " + missingMethod(solution.getSimpleName(), constructionParameterTypes));
+    private static void missingConstructor(Class<?> solution, Object... constructionParameters) {
+        Assert.fail(String.format("Missing constructor: cannot call %s(%s).",
+            solution.getSimpleName(),
+            Stream.of(constructionParameters).map(Object::toString).collect(Collectors.joining(", "))
+        ));
     }
 
     private static void missingMethod(Method method) {
-        Assert.fail("Missing method: " + missingMethod(method.getReturnType().getSimpleName() + " " + method.getName(), method.getParameterTypes()));
+        Assert.fail("Missing method: " + describeMethod(method) + ".");
     }
 
     private static void testclassIsAbstract() {
         Assert.fail("Tested class is abstract");
     }
 
-    private static void illegalConstructorAccess() {
-        Assert.fail("Illegal Constructor access");
+    private static String describeMethod(final Method method) {
+        return String.format("%s %s(%s)",
+            method.getReturnType().getSimpleName(),
+            method.getName(),
+            Stream.of(method.getParameterTypes()).map(Class::getSimpleName).collect(Collectors.joining(", "))
+        );
     }
 
 }
