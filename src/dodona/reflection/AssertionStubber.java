@@ -68,6 +68,7 @@ public class AssertionStubber {
             }
 
             if(solutionInstance == null) missingConstructor(solution, constructionParameters);
+            if(!Modifier.isPublic(solutionClass.getModifiers())) inaccessibleClass(solutionClass);
             if(!Modifier.isPublic(constructor.getModifiers())) inaccessibleConstructor(constructor);
         }
 
@@ -87,6 +88,7 @@ public class AssertionStubber {
                 .findFirst();
 
             if(!solutionMethod.isPresent()) missingMethod(method);
+            if(!Modifier.isPublic(solutionClass.getModifiers())) inaccessibleClass(solutionClass);
             if(!Modifier.isPublic(solutionMethod.get().getModifiers())) inaccessibleMethod(method);
 
             return solutionMethod.get().invoke(solutionInstance, args);
@@ -97,6 +99,10 @@ public class AssertionStubber {
     /* =========================================================================
      * Assertions
      */
+    private static void inaccessibleClass(final Class<?> klass) {
+        Assert.fail("Inaccessible class: " + klass + ". Class should have a \"public\" modifier.");
+    }
+
     private static void inaccessibleConstructor(final Constructor<?> constructor) {
         Assert.fail("Inaccessible constructor: " + constructor + ". Constructor should have a \"public\" modifier.");
     }
