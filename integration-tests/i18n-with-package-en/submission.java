@@ -1,4 +1,4 @@
-package translate;
+package /**/ translate;
 
 public class Translated {
 
