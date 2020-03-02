@@ -104,7 +104,7 @@ parse_compilation_error_student() {
     dodona append-message -f code -d "$1"
 
     # Get the code annotation information.
-    annotation_column="$(echo "$1" | grep -o "\s*\^" | wc -c)"
+    annotation_column="$(echo "$1" | sed -n '/^  *^/p' | wc -c)"
     annotation_column="$((annotation_column - 2))"
     [ "$annotation_column" -lt 0 ] && annotation_column=0
     annotation_row="$(echo "$1" | sed -n "s/^[^:]*[.]java:\([0-9]\+\):.*/\1/p")"
