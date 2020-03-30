@@ -22,7 +22,8 @@ Each exercise has a JSON configuration file, for example:
     }
   },
   "evaluation": {
-    "filename": "World.java"
+    "filename": "World.java",
+    "handler": "java12"
   },
   "visibility": "hidden"
 }
@@ -30,7 +31,7 @@ Each exercise has a JSON configuration file, for example:
 
 Please use descriptive names in `description/names/...`, these will be shown to the user, often without context (it's not very informative to have an exercise called "1" in your list of recent exercises if you're following 3 courses at a time).
 
-`evaluation/filename` is the name of the file the students should submit. As this is a Java judge, that's the name of the public class they should submit + `.java`.
+`evaluation/filename` is the name of the file the students should submit. As this is a Java judge, that's the name of the public class they should submit + `.java`. `evaluation/handler` indicates which judge the exercise should use.
 
 Other configuration values used by the Java judge are:
 - `evaluation/allow_compilation_warnings` - A boolean indicating whether the judge should allow compilation warnings, or should fail compilation if warnings were reported. This defaults to `false` if not set, meaning that compilation will fail if warnings occur.
