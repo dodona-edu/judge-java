@@ -14,11 +14,10 @@ build/%.class: src/%.java
 #                                  Packaging                                   #
 # ============================================================================ #
 
-dist/judge.jar: build/dodona/junit/JUnitJSON.class \
-				build/dodona/junit/MessageWriter.class \
-				build/dodona/junit/TabTitle.class \
-				build/dodona/util/Interactive.class \
-				$(shell find build -type f)
+SOURCES=$(shell find src -type f -name '*.java')
+CLASSES_=$(subst src/,build/,$(SOURCES))
+CLASSES=$(subst .java,.class,$(CLASSES_))
+dist/judge.jar: $(CLASSES)
 	mkdir -p $(dir $@)
 	jar -cf "$@" -C build/ .
 
