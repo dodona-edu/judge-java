@@ -1,5 +1,5 @@
 public interface SimpleInterface {
 
-    int simpleMethod();
+    int addOne(int i);
 
 }

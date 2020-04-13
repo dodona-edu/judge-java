@@ -1,17 +1,20 @@
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.Before;
-
-import dodona.reflection.AssertionStubber;
 
 public class SimpleTest {
 
     private SimpleInterface solution;
         
     @Test
-    public void test() {
+    public void testZero() {
         if(solution == null) solution = new Simple();
-        Assert.assertEquals(1, solution.simpleMethod());
+        Assert.assertEquals(1, solution.addOne(0));
+    }
+
+    @Test
+    public void testOne() {
+        if(solution == null) solution = new Simple();
+        Assert.assertEquals(2, solution.addOne(1));
     }
 
 }
