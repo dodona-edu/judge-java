@@ -55,7 +55,7 @@ explain_compilation_error() {
         *"cannot find symbol"*)
             # Cannot find symbol - forgotten import.
             class_name="$(echo "$1" | sed -n '/symbol: *class/s/.*class \(\S\+\)\s*.*/\1/p')"
-            [ -z "$class_name" ] || printf "$i18n_forgot_import\n" "$class_name" 
+            [ -z "$class_name" ] || printf "$i18n_forgot_import\n" "$class_name"
             ;;
         *"assign a value to final variable"*)
             # Assignment to final variable.
@@ -83,6 +83,9 @@ parse_compilation_error_staff() {
 
 parse_compilation_error_student() {
     # arg1: 1 compiler log
+    # arg2: 1 to annotate, 0 to not annotate
+    annotate="$2"
+
     dodona start-context
 
     # Determine the kind of compilation message.
@@ -103,21 +106,24 @@ parse_compilation_error_student() {
     dodona start-testcase -f plain -d "$testcase_msg"
     dodona append-message -f code -d "$1"
 
-    # Get the code annotation information.
-    annotation_column="$(echo "$1" | sed -n '/^  *^/p' | wc -c)"
-    annotation_column="$((annotation_column - 2))"
-    [ "$annotation_column" -lt 0 ] && annotation_column=0
-    annotation_row="$(echo "$1" | sed -n "s/^[^:]*[.]java:\([0-9]\+\):.*/\1/p")"
-    annotation_row="$((annotation_row - 1))"
-    [ "$annotation_row" -lt 0 ] && annotation_row=0
+    # Annotate the code if required.
+    if [ "$annotate" -eq 1 ]; then
+        # Get the code annotation information.
+        annotation_column="$(echo "$1" | sed -n '/^  *^/p' | wc -c)"
+        annotation_column="$((annotation_column - 2))"
+        [ "$annotation_column" -lt 0 ] && annotation_column=0
+        annotation_row="$(echo "$1" | sed -n "s/^[^:]*[.]java:\([0-9]\+\):.*/\1/p")"
+        annotation_row="$((annotation_row - 1))"
+        [ "$annotation_row" -lt 0 ] && annotation_row=0
 
-    if [ -z "$explanation" ]; then
-        # Use the first line of the compilation log.
-        explanation="$(echo "$1" | sed 's/.*: \(error\|warning\): //' | head -n 1)"
+        if [ -z "$explanation" ]; then
+            # Use the first line of the compilation log.
+            explanation="$(echo "$1" | sed 's/.*: \(error\|warning\): //' | head -n 1)"
+        fi
+
+        # Annotate the code accordingly, if required.
+        dodona annotate-code -r "$annotation_row" -c "$annotation_column" -t "$type" -m "$explanation"
     fi
-
-    # Annotate the code accordingly.
-    dodona annotate-code -r "$annotation_row" -c "$annotation_column" -t "$type" -m "$explanation"
 
     dodona close-testcase -A
     dodona close-context
@@ -125,7 +131,10 @@ parse_compilation_error_student() {
 
 parse_compilation_errors() {
     # arg1: permission
+    # arg2: 1 to annotate, 0 to not annotate
     # reads log from stdin
+
+    annotate="$2"
 
     # Loop over the compile log and process each message individually.
     compile_err=""
@@ -133,7 +142,7 @@ parse_compilation_errors() {
         if echo "$line" | egrep -q "^[^:]*[.]java:[0-9]+:"; then
             if [ -n "$compile_err" ]; then
                 if [ "$1" = 'student' ]; then
-                    parse_compilation_error_student "$compile_err" </dev/zero
+                    parse_compilation_error_student "$compile_err" "$annotate" </dev/zero
                 else
                     parse_compilation_error_staff "$compile_err" </dev/zero
                 fi
@@ -150,7 +159,7 @@ parse_compilation_errors() {
 
     # Process the last error/warning.
     if [ "$1" = 'student' ]; then
-        parse_compilation_error_student "$compile_err" </dev/zero
+        parse_compilation_error_student "$compile_err" "$annotate" </dev/zero
     else
         parse_compilation_error_staff "$compile_err" </dev/zero
     fi
@@ -161,6 +170,7 @@ compilation_failed() {
     callout="$2"
     human="$3"
     target="$4"
+    annotate="$5"
 
     # Counting compilation errors and warning.
     compile_error_count="$(compilation_error_count < "$compilation")"
@@ -188,7 +198,7 @@ compilation_failed() {
     dodona append-message -f callout -d "$(printf "$callout" "$described_both_count")"
 
     # Append a (failed) testcase per compilation error
-    sed 's_.*/\([^/]*.java\)_\1_' "$compilation" | parse_compilation_errors "$target"
+    sed 's_.*/\([^/]*.java\)_\1_' "$compilation" | parse_compilation_errors "$target" "$annotate"
 
     dodona close-tab # -b "$compile_errwarn_sum" TODO https://github.ugent.be/dodona/dodona/pull/1051
     dodona close-judgement -A -e 'compilation error' -h "$(printf "$human" "$described_error_count")"
@@ -206,7 +216,7 @@ worklibs="$([ -d "$workdir" ] && find "$workdir" -name '*.jar' | xargs echo | tr
 
 # Compiling the workdir given code
 if ! find . -name '*.java' | xargs --no-run-if-empty javac -cp ".:${worklibs}:${testlibs}" -d . -sourcepath . > "$compilation" 2>&1; then
-    compilation_failed "$compilation" "$i18n_workdir_compilation_message" "$i18n_workdir_compilation_summary" 'staff'
+    compilation_failed "$compilation" "$i18n_workdir_compilation_message" "$i18n_workdir_compilation_summary" 'staff' 0
 fi
 
 # Create the Input.java class, containing the submitted code
@@ -218,7 +228,7 @@ sed -i '1,2{/^package [a-z0-9_.]*;/d}' "$filename"
 # Compiling the user code
 [ "$allow_compilation_warnings" = 'true' ] || compile_opt='-Werror'
 if ! javac -cp ".:${worklibs}" -Xlint:all $compile_opt "$filename" > "$compilation" 2>&1; then
-    compilation_failed "$compilation" "$i18n_user_compilation_message" "%s" 'student'
+    compilation_failed "$compilation" "$i18n_user_compilation_message" "%s" 'student' 1
 fi
 
 # Verify the student submitted the requested class
@@ -245,7 +255,7 @@ jar -cf "judge.jar" -C /tmp/build .
 
 # Compiling the tests
 if ! find "$resources" -name '*.java' | xargs javac -Xdiags:verbose -cp ".:${resources}:${worklibs}:${testlibs}:judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
-    compilation_failed "$compilation" "$i18n_test_compilation_message" "$i18n_test_compilation_summary" 'student'
+    compilation_failed "$compilation" "$i18n_test_compilation_message" "$i18n_test_compilation_summary" 'student' 0
 fi
 
 # Everything is compiled
