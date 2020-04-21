@@ -1,0 +1,50 @@
+{
+  "command": "start-judgement"
+}
+{
+  "command": "start-tab",
+  "hidden": true,
+  "title": "Compiler"
+}
+{
+  "command": "append-message",
+  "message": {
+    "description": "Something went wrong while compiling the tests for this exercise.",
+    "format": "callout"
+  }
+}
+{
+  "command": "start-context"
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "Compilation error",
+    "format": "plain"
+  }
+}
+{
+  "command": "append-message",
+  "message": {
+    "description": "CompileErrorInTestsTest.java:8: error: cannot find symbol\n        Assert.asserEquals(true, true);\n              ^\n  symbol:   method asserEquals(boolean,boolean)\n  location: class Assert",
+    "format": "code"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "command": "close-context"
+}
+{
+  "command": "close-tab"
+}
+{
+  "accepted": false,
+  "command": "close-judgement",
+  "status": {
+    "enum": "compilation error",
+    "human": "Error in the tests"
+  }
+}
