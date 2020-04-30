@@ -23,10 +23,7 @@ filename="$(jq -r '.filename' "$config")"
 natural_language="$(jq -r '.natural_language' "$config")"
 . "$judge"/i18n/"$natural_language"
 
-# time and memory limit with margins
-time_limit="$(jq -r '.time_limit' "$config")"
-time_limit="$(( time_limit - 10 ))"
-
+# memory limit with some margin
 memory_limit="$(jq -r '.memory_limit' "$config")"
 memory_limit="$(( memory_limit * 9 / 10000 ))"
 
