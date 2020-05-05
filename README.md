@@ -1,7 +1,7 @@
 
 # Dodona JUnit Judge
 
-This is a judging system for Dodona, to judge Java exercises using the JUnit testing framework.
+This is a judging system for Dodona, to judge Java exercises using the JUnit 4 testing framework.
 
 ## Preparing exercises
 
@@ -48,7 +48,7 @@ When running the judge, the code is compiled in the order given below. This mean
 - The judge is compiled.
 - The code in `evaluation` is compiled. This directory should contain the JUnit tests. It can also contain other classes and jar-files which will be included in the class path.
 
-After compilation, the judge is executed. It will assume the presence of a `TestSuite` class, containing a JUnit testsuite, which it will run. While the source file for `TestSuite` can be anywhere, I'd advise `evaluation/TestSuite.java`.
+After compilation, the judge is executed. It will assume the presence of a `TestSuite` class, containing a JUnit 4 testsuite, which it will run. While the source file for `TestSuite` can be anywhere, I'd advise `evaluation/TestSuite.java`.
 
 ### Good practices
 
@@ -66,7 +66,7 @@ While above description leaves a lot of interpretation, here is how a new exerci
 
 ### Test files
 
-As mentioned, test files can be pure JUnit test files, including all features in the latest JUnit (I especially recommend Parameterized). Some extras are available though:
+As mentioned, test files can be pure JUnit test files, including all features in JUnit 4 (I especially recommend Parameterized). Some extras are available though:
 
-- By importing `dodona.junit.TabTitle` in your exercise, you can set the title of the tab in dodona for this test (each test in TestSuite will produce on tab). Just add the `@TabTitle("Some Title")` annotation to your test class.
+- By importing `dodona.junit.TabTitle` in your exercise, you can set the title of the tab in dodona for this test (each test in TestSuite will produce one tab). Just add the `@TabTitle("Some Title")` annotation to your test class.
 - `dodona.junit.MessageWriter` is a JUnit test rule. By using `@Rule public MessageWriter out = new MessageWriter();` in your test class, you can write to `out` as if it were `System.out` (it's actually a `PrintWriter`, not a `PrintStream`, but they share most methods). Whatever you write to it in a test will be visible to the students if that test fails. Useful for e.g. printing the input matrices to a matrix multiplication exercise test, along with the expected and generated outputs.
