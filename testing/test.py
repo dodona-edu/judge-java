@@ -50,7 +50,24 @@ assert os.path.isfile(executable)
 
 print("calling command:", executable)
 print("with argument  :", json.dumps(run_options, indent=4))
-print("output         :")
 print()
 
-subprocess.run(executable, input=json.dumps(run_options).encode('utf-8'))
+result = subprocess.run(executable, input=json.dumps(run_options), text=True, capture_output=True)
+
+messages = []
+
+end_of_parsing_index = 0
+while (end_of_parsing_index < len(result.stdout)):
+    (parsed_json_object, amount_parsed_chars) = json.JSONDecoder().raw_decode((result.stdout)[end_of_parsing_index:])
+    end_of_parsing_index += amount_parsed_chars
+
+    if (parsed_json_object["command"] == "append-message"):
+        messages.append(parsed_json_object["message"]["description"])
+
+    print("-" * 80)    
+    print(json.dumps(parsed_json_object, indent=4))
+    print()
+
+for message in messages:
+    print(message)
+    print()
