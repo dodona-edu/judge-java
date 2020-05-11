@@ -12,10 +12,9 @@ import re
 def judge_partial_output_to_valid_json(judge_output):
     valid_json = []
 
-    end_of_parsing_index = 0
-    while (end_of_parsing_index < len(judge_output)):
-        (parsed_json_object, amount_parsed_chars) = json.JSONDecoder().raw_decode(judge_output[end_of_parsing_index:])
-        end_of_parsing_index += amount_parsed_chars
+    while judge_output:
+        parsed_json_object, amount_parsed_chars = json.JSONDecoder().raw_decode(judge_output)
+        judge_output = judge_output[amount_parsed_chars:]
         
         if parsed_json_object["command"] == "append-message":
             parsed_json_object["message"]["description"] = re.sub("\n at [^\n]+\\([^)]+\\)", "", parsed_json_object["message"]["description"])
@@ -73,7 +72,7 @@ def run_exercise(path_to_exercise, abs_path_judge):
 
             has_passed = (cleaned_result == cleaned_expected_result)
 
-            if (cleaned_result == cleaned_expected_result):
+            if cleaned_result == cleaned_expected_result:
                 print("PASSED")
                 print()
             else:

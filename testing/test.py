@@ -59,7 +59,7 @@ with open(os.path.join(path_to_exercise, "config.json")) as exercise_config:
 
     remaining_output = result.stdout
     while remaining_output:
-        (parsed_json_object, amount_parsed_chars) = json.JSONDecoder().raw_decode(remaining_output)
+        parsed_json_object, amount_parsed_chars = json.JSONDecoder().raw_decode(remaining_output)
         remaining_output = remaining_output[amount_parsed_chars:]
 
         if (parsed_json_object["command"] == "append-message"):
