@@ -30,66 +30,65 @@ def run_exercise(path_to_exercise, abs_path_judge):
     assert os.path.exists(abs_path_judge)
     assert os.path.isfile(abs_path_judge)
 
-    exercise_config = open(os.path.join(path_to_exercise, "config.json"))
-    assert exercise_config
+    with open(os.path.join(path_to_exercise, "config.json")) as exercise_config:
+        exercise_config_json = json.load(exercise_config)
 
-    exercise_config_json = json.load(exercise_config)
+        allow_compilation_warnings = False
+        if "allow_compilation_warnings" in exercise_config_json:
+            allow_compilation_warnings = exercise_config_json["allow_compilation_warnings"]
 
-    allow_compilation_warnings = False
-    if "allow_compilation_warnings" in exercise_config_json:
-        allow_compilation_warnings = exercise_config_json["allow_compilation_warnings"]
+        filename = exercise_config_json["filename"]
+        language = exercise_config_json["natural_language"]
 
-    filename = exercise_config_json["filename"]
-    language = exercise_config_json["natural_language"]
+        print(f"Testing \"{os.path.relpath(path_to_exercise)}\" with judge \"{os.path.relpath(abs_path_judge)}\" ... ")
 
-    print(f"Testing \"{os.path.relpath(path_to_exercise)}\" with judge \"{os.path.relpath(abs_path_judge)}\" ... ")
+        temp_workdir = tempfile.TemporaryDirectory()
+        workdir = os.path.join(path_to_exercise, "workdir")
+        if os.path.exists(workdir):
+            assert os.path.isdir(workdir)
+            shutil.copytree(workdir, temp_workdir.name, dirs_exist_ok=True)
 
-    temp_workdir = tempfile.TemporaryDirectory()
-    workdir = os.path.join(path_to_exercise, "workdir")
-    if os.path.exists(workdir):
-        assert os.path.isdir(workdir)
-        shutil.copytree(workdir, temp_workdir.name, dirs_exist_ok=True)
+        run_options = { 
+            "resources": os.path.realpath(os.path.join(path_to_exercise, "evaluation")),
+            "judge": os.path.dirname(abs_path_judge),
+            "natural_language": language,
+            "workdir": temp_workdir.name,
+            "allow_compilation_warnings": allow_compilation_warnings,
+            "filename": filename,
+            "time_limit": 30,
+            "memory_limit": 1000000000, 
+            "source": os.path.join(path_to_exercise, "submission.java")
+        }
 
-    run_options = { 
-        "resources": os.path.realpath(os.path.join(path_to_exercise, "evaluation")),
-        "judge": os.path.dirname(abs_path_judge),
-        "natural_language": language,
-        "workdir": temp_workdir.name,
-        "allow_compilation_warnings": allow_compilation_warnings,
-        "filename": filename,
-        "time_limit": 30,
-        "memory_limit": 1000000000, 
-        "source": os.path.join(path_to_exercise, "submission.java")
-    }
+        result = subprocess.run(abs_path_judge, input=json.dumps(run_options), cwd=temp_workdir.name, text=True, capture_output=True)
+        cleaned_result = json.dumps(judge_partial_output_to_valid_json(result.stdout),
+                                    indent = 4,
+                                    sort_keys = True)
 
-    result = subprocess.run(abs_path_judge, input=json.dumps(run_options), cwd=temp_workdir.name, text=True, capture_output=True)
-    cleaned_result = json.dumps(judge_partial_output_to_valid_json(result.stdout),
-                                         indent = 4,
-                                         sort_keys = True)
+        with open(os.path.join(path_to_exercise, "result.json")) as expected_result_file:
+            expected_result = expected_result_file.read().replace("\n", "")
+            cleaned_expected_result = json.dumps(judge_partial_output_to_valid_json(expected_result),
+                                                 indent = 4,
+                                                 sort_keys = True)
 
-    expected_result = open(os.path.join(path_to_exercise, "result.json")).read().replace("\n", "")
-    cleaned_expected_result = json.dumps(judge_partial_output_to_valid_json(expected_result),
-                                         indent = 4,
-                                         sort_keys = True)
+            has_passed = (cleaned_result == cleaned_expected_result)
 
-    has_passed = (cleaned_result == cleaned_expected_result)
+            if (cleaned_result == cleaned_expected_result):
+                print("PASSED")
+                print()
+            else:
+                print("FAILED")
+                print()
 
-    if (cleaned_result == cleaned_expected_result):
-        print("PASSED")
-        print()
-    else:
-        print("FAILED")
-        print()
+                print(">>> EXPECTED:")
+                print(cleaned_expected_result)
+                print()
 
-        print(">>> EXPECTED:")
-        print(cleaned_expected_result)
-        print()
-
-        print(">>> ACTUAL:")
-        print(cleaned_result)
-        print()
-    
-    return has_passed
+                print(">>> ACTUAL:")
+                print(cleaned_result)
+                print()
+            
+            return has_passed
 
 
 ################################################################################
@@ -131,14 +130,14 @@ else:
             else:
                 failed.append(os.path.basename(path_to_exercise))
 
-    if (passed):
+    if passed:
         print("===== PASSED =====")
         for p in passed:
             print(p)
 
     print()
     
-    if (failed):
+    if failed:
         print("===== FAILED =====")
         for f in failed:
             print(f)
