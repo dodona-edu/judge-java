@@ -18,7 +18,6 @@ def judge_partial_output_to_valid_json(judge_output):
         end_of_parsing_index += amount_parsed_chars
         
         if parsed_json_object["command"] == "append-message":
-
             parsed_json_object["message"]["description"] = re.sub("\n at [^\n]+\\([^)]+\\)", "", parsed_json_object["message"]["description"])
 
         valid_json.append(parsed_json_object)

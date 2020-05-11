@@ -6,8 +6,15 @@ import json
 import shutil
 import subprocess
 import shlex
+import argparse
 
-path_to_exercise = sys.argv[1]
+# Set up argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument(dest="path_to_exercise", metavar="PATH_TO_EXERCISE", type=str, help="the path to the exercise")
+args = parser.parse_args()
+
+path_to_exercise = args.path_to_exercise
 assert path_to_exercise 
 assert os.path.exists(path_to_exercise) 
 assert os.path.isdir(path_to_exercise)
