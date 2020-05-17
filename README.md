@@ -3,11 +3,14 @@
 
 This is a judging system for Dodona, to judge Java exercises using the JUnit 4 testing framework.
 
-## Preparing exercises
+- [How to create new exercises](#creating-new-exercises)
+- [How to run exercises on your computer](#running-exercises)
 
-For exercises descriptions, please check out [this wikipage](https://github.ugent.be/dodona/dodona/wiki/exercise-description-templates).
+## Creating new exercises
 
-To write tests for this judge, please read the general instructions on [describing exercises](https://github.ugent.be/dodona/dodona/wiki/exercise-repositories) first. I'll assume you have worked with JUnit before.
+For exercises descriptions, please check out [this wikipage](https://dodona-edu.github.io/nl/references/exercise-description/).
+
+To write tests for this judge, please read the general instructions on [describing exercises](https://dodona-edu.github.io/en/guides/new-exercise-repo/) first. I'll assume you have worked with JUnit before.
 
 ### Exercise configuration
 
@@ -70,3 +73,21 @@ As mentioned, test files can be pure JUnit test files, including all features in
 
 - By importing `dodona.junit.TabTitle` in your exercise, you can set the title of the tab in dodona for this test (each test in TestSuite will produce one tab). Just add the `@TabTitle("Some Title")` annotation to your test class.
 - `dodona.junit.MessageWriter` is a JUnit test rule. By using `@Rule public MessageWriter out = new MessageWriter();` in your test class, you can write to `out` as if it were `System.out` (it's actually a `PrintWriter`, not a `PrintStream`, but they share most methods). Whatever you write to it in a test will be visible to the students if that test fails. Useful for e.g. printing the input matrices to a matrix multiplication exercise test, along with the expected and generated outputs.
+
+## Running Exercises
+
+Creating/modifying and exercise, commiting your changes, pushing them to your remote, and submitting the solution on Dodona makes for quite a slow development cycle. To run you tests locally, various methods are possible.
+
+### Using shellscripts
+
+If you're familiar with the command line, this repository provides some shell scripts to test your exercises on your POSIX-compatible machine. With `testing` as working directory, run `./test.sh path/to/the/exercise/`. This path points to a directory with a `config.json` exercise file in it. It will "submit" the solution in the `solution` subdirectory. Reading the JSON output might take some getting used to.
+
+To handle JSON in the shell, this script (and the judge) require [jq](https://stedolan.github.io/jq/) to be installed.
+
+### Using IntelliJ (or other IDE's)
+
+Since the tests are mostly just jUnit tests, IntelliJ and other IDE's provide support for running them. The directory structure makes things slightly more complicated, though. This describes one method to get things running, people more familiar with IntelliJ might know a better way.
+
+Per exercise, create a new project. The `config.json` file should be in the project root. Mark (or create) the `workdir`, `evaluation` and `solution` directories as "sources root". Add jUnit 4 as a dependency of the project.
+
+If your exercises use some Dodona-specific features, such as the `TabTitle` or the `AssertionStubber`, add the Judge as a dependency. Opening this repository as an IntelliJ project should allow you to create a JAR.
