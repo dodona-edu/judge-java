@@ -5,7 +5,7 @@ import static dodona.junit.JUnitJSON.PROPERTY_OUTPUT_CUTOFF;
 public class CloseTest extends AcceptedClose {
 
     // must be passed to the judge
-    private static final int outputCutoff = Integer.getInteger(PROPERTY_OUTPUT_CUTOFF);
+    private static final int outputCutoff = Integer.getInteger(PROPERTY_OUTPUT_CUTOFF, 1000);
 
     private String generated;
     private StatusPair status;

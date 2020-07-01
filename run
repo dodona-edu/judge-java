@@ -29,7 +29,7 @@ memory_limit="$(( memory_limit * 9 / 10000 ))"
 
 # Other configuration parameters.
 allow_compilation_warnings="$(jq -r '.allow_compilation_warnings == true' "$config")"
-generated_output_cutoff="$(jq -r '.generated_output_cutoff // 1000' "$config")"
+generated_output_cutoff="$(jq -r '.generated_output_cutoff // ""' "$config")"
 
 ############################## [ Helper functions ] ############################
 # Import json helper functions.
