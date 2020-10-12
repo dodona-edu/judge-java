@@ -1,6 +1,7 @@
 package dodona.junit;
 
 import java.util.Optional;
+import java.util.Locale;
 import java.security.Permission;
 import static java.lang.Thread.currentThread;
 
@@ -22,6 +23,8 @@ public class JUnitJSON {
             System.out.println(new Json().asString(new AppendMessage(Message.internalError("TestSuite class not found."))));
             System.exit(1);
         }
+
+        Locale.setDefault(Locale.Category.FORMAT, new Locale("en_US_POSIX"));
 
         NoExitSecurityManager sm = new NoExitSecurityManager(System.getSecurityManager());
         System.setSecurityManager(sm);
