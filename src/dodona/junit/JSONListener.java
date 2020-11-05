@@ -6,6 +6,7 @@ import dodona.feedback.CloseTab;
 import dodona.feedback.CloseTestcase;
 import dodona.feedback.EscalateStatus;
 import dodona.feedback.Message;
+import dodona.feedback.Permission;
 import dodona.feedback.StartContext;
 import dodona.feedback.StartTab;
 import dodona.feedback.StartTestcase;
@@ -76,7 +77,9 @@ public class JSONListener extends RunListener {
         final String title = this.getI18nTabTitle(description)
             .orElseGet(() -> this.getTabTitle(description)
                 .orElse(TabTitle.DEFAULT));
-        write(new StartTab(title));
+        final Permission permission = this.getTabPermission(description)
+            .orElse(TabPermission.DEFAULT);
+        write(new StartTab(title, permission));
     }
 
     public void afterTab() {
@@ -177,7 +180,7 @@ public class JSONListener extends RunListener {
                 .map(bundle::getString)
         );
     }
-    
+
     /**
      * Parse a @TabTitle annotation.
      *
@@ -186,6 +189,16 @@ public class JSONListener extends RunListener {
      */
     private Optional<String> getTabTitle(final Description desc) {
         return Optional.ofNullable(desc.getAnnotation(TabTitle.class)).map(TabTitle::value);
+    }
+
+    /**
+     * Parse a @TabPermission annotation.
+     *
+     * @param desc the description
+     * @return the value of the TabPermission annotation if available
+     */
+    private Optional<Permission> getTabPermission(final Description desc) {
+        return Optional.ofNullable(desc.getAnnotation(TabPermission.class)).map(TabPermission::value);
     }
 
     /**

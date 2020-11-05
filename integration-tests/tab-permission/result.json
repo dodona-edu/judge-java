@@ -12,13 +12,13 @@
 {
   "command": "start-tab",
   "hidden": false,
-  "permission": "student",
+  "permission": "staff",
   "title": "Test"
 }
 {
   "command": "start-context",
   "description": {
-    "description": "test(EchoTest)",
+    "description": "testMethod(TabPermissionTest)",
     "format": "code"
   }
 }

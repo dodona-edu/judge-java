@@ -12,6 +12,7 @@
 {
   "command": "start-tab",
   "hidden": false,
+  "permission": "student",
   "title": "Translated title"
 }
 {
