@@ -88,6 +88,10 @@ public class JSONListener extends RunListener {
 
     public void beforeTest(Description description) {
         final String title = this.getDescription(description);
+        if(depth < 3) {
+            // An exception got thrown outside a tab because the test class is incorrect
+            write(new StartTab("Loading tests"));
+        }
         write(new StartContext(Message.code(title)));
     }
 
@@ -131,11 +135,16 @@ public class JSONListener extends RunListener {
                     write(new AppendMessage(Message.code(message.toString())));
                     thrown = thrown.getCause();
                 }
+
             }
 
             feedback.stream().map(AppendMessage::new).forEach(this::write);
             write(new CloseTestcase(false));
             write(new CloseContext(false));
+
+            if(depth < 3) {
+                write(new CloseTab());
+            }
         }
     }
 
