@@ -26,7 +26,7 @@ Each exercise has a JSON configuration file, for example:
   },
   "evaluation": {
     "filename": "World.java",
-    "handler": "java12"
+    "handler": "java17"
   },
   "visibility": "hidden"
 }

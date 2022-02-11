@@ -7,6 +7,6 @@
   },
   "evaluation": {
     "filename": "Simple.java",
-    "handler": "java12"
+    "handler": "java17"
   }
 }
