@@ -1,4 +1,4 @@
 {
-    "judge": "java17",
+    "judge": "java",
     "image": "dodona-java17"
 }

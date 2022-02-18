@@ -7,6 +7,6 @@
   },
   "evaluation": {
     "filename": "Echo.java",
-    "handler": "java17"
+    "handler": "java"
   }
 }
