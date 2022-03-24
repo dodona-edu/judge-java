@@ -19,7 +19,7 @@ sh "../run" <<HERE
     "judge": "..",
     "natural_language": "en",
     "workdir": "$(pwd)",
-    "allow_compilation_warnings": "$allow_compilation_warnings",
+    "allow_compilation_warnings": $allow_compilation_warnings,
     "filename": "$filename",
     "time_limit": 30,
     "memory_limit": 100000000,
