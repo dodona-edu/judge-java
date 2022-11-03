@@ -219,8 +219,8 @@ fi
 # Create the Input.java class, containing the submitted code
 cat "$(jq -r '.source' "$config")" > "$filename"
 
-# Very conservative removal of package statements
-sed -i '1,2{/^package [a-z0-9_.]*;/d}' "$filename"
+# Conservative removal of package statements
+sed -i '1,2{/^package [a-zA-Z0-9_.]*;/d}' "$filename"
 
 # Compiling the user code
 [ "$allow_compilation_warnings" = 'true' ] || compile_opt='-Werror'
