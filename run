@@ -220,7 +220,7 @@ fi
 cat "$(jq -r '.source' "$config")" > "$filename"
 
 # Conservative removal of package statements
-sed -i '1,2{/^package [a-zA-Z0-9_.]*;/d}' "$filename"
+sed -i '1,5{s/^package [a-zA-Z0-9_.]*;//}' "$filename"
 
 # Compiling the user code
 [ "$allow_compilation_warnings" = 'true' ] || compile_opt='-Werror'
