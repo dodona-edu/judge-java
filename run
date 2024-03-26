@@ -259,6 +259,6 @@ fi
 dodona close-tab
 
 # Running the tests
-java -Djava.security.manager=allow -Xmx"${memory_limit}k" -cp ".:${worklibs}:${testlibs}:judge.jar:${resources}/properties" -Ddodona.language="${natural_language}" -Ddodona.output_cutoff="${generated_output_cutoff}" dodona.junit.JUnitJSON
+java -Djava.security.manager=allow -Xss32M -Xmx"${memory_limit}k" -cp ".:${worklibs}:${testlibs}:judge.jar:${resources}/properties" -Ddodona.language="${natural_language}" -Ddodona.output_cutoff="${generated_output_cutoff}" dodona.junit.JUnitJSON
 
 dodona close-judgement
