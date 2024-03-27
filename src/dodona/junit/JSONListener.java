@@ -19,6 +19,7 @@ import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
+import org.junit.runners.model.TestTimedOutException;
 
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -118,7 +119,11 @@ public class JSONListener extends RunListener {
                 Throwable deepest = thrown;
                 while(deepest.getCause() != null) deepest = deepest.getCause();
                 write(new StartTestcase(Message.code(deepest.toString())));
-                write(new EscalateStatus(Status.RUNTIME_ERROR, "Uitvoeringsfout"));
+                if (thrown instanceof TestTimedOutException) {
+                    write(new EscalateStatus(Status.TIME_LIMIT_EXCEEDED, "Tijdslimiet overschreden"));
+                } else {
+                    write(new EscalateStatus(Status.RUNTIME_ERROR, "Uitvoeringsfout"));
+                }
                 while(thrown != null) {
                     StringBuilder message = new StringBuilder();
                     message.append("Caused by " + thrown);
@@ -159,7 +164,7 @@ public class JSONListener extends RunListener {
             .orElseGet(() -> getTestDescription(desc)
                 .orElse(desc.getDisplayName()));
     }
-    
+
     /**
      * Parse a @I18nTabTitle annotation.
      *
@@ -174,7 +179,7 @@ public class JSONListener extends RunListener {
                 .map(bundle::getString)
         );
     }
-    
+
     /**
      * Parse a @I18nTestDescription annotation.
      *

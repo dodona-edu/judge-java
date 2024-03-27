@@ -1,0 +1,59 @@
+{
+  "command": "start-judgement"
+}
+{
+  "command": "start-tab",
+  "hidden": true,
+  "title": "Compiler"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "start-tab",
+  "hidden": false,
+  "permission": "student",
+  "title": "Test"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "test(SleepyTest)",
+    "format": "code"
+  }
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "org.junit.runners.model.TestTimedOutException: test timed out after 1 milliseconds",
+    "format": "code"
+  }
+}
+{
+  "command": "escalate-status",
+  "status": {
+    "enum": "time limit exceeded",
+    "human": "Tijdslimiet overschreden"
+  }
+}
+{
+  "command": "append-message",
+  "message": {
+    "description": "Caused by org.junit.runners.model.TestTimedOutException: test timed out after 1 milliseconds",
+    "format": "code"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "close-judgement"
+}
