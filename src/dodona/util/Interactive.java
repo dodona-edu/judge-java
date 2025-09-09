@@ -1,8 +1,8 @@
 package dodona.util;
 
 import dodona.junit.ExitException;
-import dodona.junit.MultiMessageWriter;
-import dodona.junit.TestWriter;
+import dodona.vintage.MultiMessageWriter;
+import dodona.vintage.TestWriter;
 import org.junit.Assert;
 import org.junit.contrib.java.lang.system.SystemOutRule;
 import org.junit.contrib.java.lang.system.TextFromStandardInputStream;

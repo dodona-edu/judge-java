@@ -1,16 +1,11 @@
 package dodona.reflection;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.WildcardType;
-import java.lang.reflect.WildcardType;
 import java.lang.reflect.TypeVariable;
-import java.util.stream.IntStream;
 import java.util.Optional;
 
 public class Assignable {

@@ -1,9 +1,10 @@
-package dodona.junit;
+package dodona.vintage;
 
 import dodona.feedback.Format;
 import dodona.feedback.Message;
 import dodona.feedback.Permission;
 
+import dodona.junit.AnnotatedThrowable;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;

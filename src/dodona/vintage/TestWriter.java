@@ -1,4 +1,4 @@
-package dodona.junit;
+package dodona.vintage;
 
 import dodona.feedback.Message;
 import dodona.feedback.Status;
@@ -6,6 +6,7 @@ import dodona.feedback.StatusPair;
 import dodona.feedback.StartTest;
 import dodona.feedback.CloseTest;
 
+import dodona.junit.TestCarryingThrowable;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
