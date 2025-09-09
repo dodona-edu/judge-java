@@ -6,15 +6,11 @@ import dodona.feedback.StatusPair;
 import dodona.feedback.StartTest;
 import dodona.feedback.CloseTest;
 
-import org.junit.Assert;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 public class TestWriter implements TestRule {
-
-    private StartTest start;
-    private CloseTest close;
 
     public Statement apply(final Statement base, Description description) {
         return base;

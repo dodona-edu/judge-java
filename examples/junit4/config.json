@@ -1,0 +1,12 @@
+{
+  "description": {
+    "names": {
+      "nl": "Simpel voorbeeld",
+      "en": "Simple example"
+    }
+  },
+  "evaluation": {
+    "filename": "Simple.java",
+    "handler": "java"
+  }
+}

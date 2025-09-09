@@ -1,5 +1,5 @@
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class SimpleTest {
 
@@ -8,13 +8,13 @@ public class SimpleTest {
     @Test
     public void testZero() {
         if(solution == null) solution = new Simple();
-        Assertions.assertEquals(1, solution.addOne(0));
+        Assert.assertEquals(1, solution.addOne(0));
     }
 
     @Test
     public void testOne() {
         if(solution == null) solution = new Simple();
-        Assertions.assertEquals(2, solution.addOne(1));
+        Assert.assertEquals(2, solution.addOne(1));
     }
 
 }

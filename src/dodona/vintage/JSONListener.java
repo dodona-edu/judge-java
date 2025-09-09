@@ -1,4 +1,4 @@
-package dodona.junit;
+package dodona.vintage;
 
 import dodona.feedback.AppendMessage;
 import dodona.feedback.CloseContext;
@@ -15,6 +15,7 @@ import dodona.i18n.I18nTabTitle;
 import dodona.i18n.I18nTestDescription;
 import dodona.i18n.Language;
 import dodona.json.Json;
+import dodona.junit.*;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;

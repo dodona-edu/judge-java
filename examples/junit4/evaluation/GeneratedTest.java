@@ -1,21 +1,20 @@
-import dodona.junit.TabTitle;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.Parameter;
-import org.junit.jupiter.params.ParameterizedClass;
-import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
+import java.util.List;
+import java.util.ArrayList;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import dodona.junit.TabTitle;
 
 /**
  * A more complex test class.
  *
  * Runs a larger number of generated tests.
  */
-@ParameterizedClass
-@MethodSource("data")
+@RunWith(Parameterized.class)
 @TabTitle("Random Tests") // Giving a name other than 'Test' to the tab in Dodona.
 public class GeneratedTest {
 
@@ -25,7 +24,7 @@ public class GeneratedTest {
 
     /** This method generates a number of tests. */
 
-    //@Parameters(name = "{index} | addOne({0}) == {1}")
+    @Parameterized.Parameters(name = "{index} | addOne({0}) == {1}")
     public static Iterable<Object[]> data() {
         List<Object[]> data = new ArrayList<>();
         Random random = new Random(SEED);
@@ -37,15 +36,15 @@ public class GeneratedTest {
     }
 
     /* Each test, in order, is filled in here and run. */
-    @Parameter(value=0) public int testNumber;
-    @Parameter(value=1) public int expected;
+    @Parameterized.Parameter(value=0) public int testNumber;
+    @Parameterized.Parameter(value=1) public int expected;
 
     private static SimpleInterface studentSolution;
 
     @Test
     public void test() {
         if(studentSolution == null) studentSolution = new Simple();
-        Assertions.assertEquals(expected, studentSolution.addOne(testNumber));
+        Assert.assertEquals(expected, studentSolution.addOne(testNumber));
     }
 
 }
