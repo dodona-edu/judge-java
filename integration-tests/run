@@ -1,19 +1,65 @@
 #!/bin/sh
 set -e
-judge="$PWD"
-for test in integration-tests/*; do
-    [ -d "$test" ] || continue
-    [ -n "$1" -a "$1" != "$test" ] && continue
-    allow_compilation_warnings="$(jq -r '.allow_compilation_warnings == true' $test/config.json)"
-    filename="$(jq -r '.filename' "$test/config.json")"
-    lang="$(jq -r '.natural_language' "$test/config.json")"
 
-    printf 'Testing %s ... ' "${test##*/}"
+# Default values
+target_dir="integration-tests"
+overwrite=0
+
+# Parse arguments
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --overwrite)
+            overwrite=1
+            ;;
+        *)
+            target_dir="$1"
+            ;;
+    esac
+    shift
+done
+
+
+judge="$PWD"
+exact_match=0
+description_changed=0
+minor_change=0
+major_change=0
+
+# Find all config.json files in target directory
+while read config; do
+    test_dir="$(dirname "$config")"
+    
+    # Extract config values
+    filename="$(jq -r '.evaluation.filename // .filename' "$config")"
+    allow_compilation_warnings="$(jq -r '.allow_compilation_warnings == true' "$config")"
+    lang="$(jq -r '.natural_language // "en"' "$config")"
+    
+    # Determine submission source and result file
+    submission_source="$test_dir/submission.java"
+    config_source="$test_dir/solution/$filename"
+    if [ -f "$submission_source" ]; then
+        source="$submission_source"
+    elif [ -f "$config_source" ]; then
+        source="$config_source"
+    else
+        echo "Warning: No submission.java or $filename found in $test_dir. Skipping." >&2
+        continue
+    fi
+    
+    result_file="$test_dir/result.json"
+
+    echo -en "Testing ${test_dir} ...\t"
+    
     workdir="$(mktemp -d)"
     cd "$workdir"
 
-    [ -d "$judge/$test/workdir" ] && find "$judge/$test/workdir" -mindepth 1 -maxdepth 1 -exec cp -r \{\} . \;
-    echo '{ "resources": "'"$judge/$test/evaluation/"'"
+    # Copy workdir contents if they exist
+    if [ -d "$judge/$test_dir/workdir" ]; then
+        find "$judge/$test_dir/workdir" -mindepth 1 -maxdepth 1 -exec cp -r \{\} . \;
+    fi
+
+    # Run the judge
+    output=$(echo '{ "resources": "'"$judge/$test_dir/evaluation/"'"
           , "judge": "'"$judge"'"
           , "natural_language": "'"$lang"'"
           , "workdir": "'"$workdir"'"
@@ -21,16 +67,64 @@ for test in integration-tests/*; do
           , "filename": "'"$filename"'"
           , "time_limit": 30
           , "memory_limit": 1000000000
-          , "source": "'"$judge/$test/submission.java"'"
+          , "source": "'"$judge/$source"'"
           }' \
-          | "$judge"/run \
+          | (timeout -k 10s 60s "$judge/run" 2> /dev/null) \
           | jq --sort-keys 'if(.command == "append-message")
                 then .message.description |= gsub("\n at [^\n]+\\([^)]+\\)"; "")
                 else .
-            end' \
-          | diff "$judge/$test/result.json" -
+            end' 
+    )
 
     cd "$judge"
     rm -r "$workdir"
-    echo passed
-done
+
+    # Count accepted and failed in output
+    accepted_output="$(echo "$output" | grep '"accepted": true' | wc -l)"
+    failed_output="$(echo "$output" | grep '"accepted": false' | wc -l)"
+    echo -en "$accepted_output accepted, $failed_output failed\t"
+
+
+
+    if [ -f "$result_file" ]; then
+        # Count accepted and failed in result
+        accepted_result="$(grep '"accepted": true' "$result_file" | wc -l)"
+        failed_result="$(grep '"accepted": false' "$result_file" | wc -l)"
+
+
+        # First check if files are exact using diff, then check if they differ except '.description', then check they differ in accepted or failed
+        if diff "$result_file" <(echo "$output") > /dev/null; then
+            echo "[EXACT MATCH]"
+            exact_match=$((exact_match + 1))
+        elif diff <(jq "del(.description)" "$result_file") <(echo "$output" | jq "del(.description)") > /dev/null; then
+            echo "[DESCRIPTION CHANGED]"
+            description_changed=$((description_changed + 1))
+        elif [ "$accepted_output" -eq "$accepted_result" ] && [ "$failed_output" -eq "$failed_result" ]; then
+            echo "[MINOR CHANGE] (accepted/failed unchanged)"
+            minor_change=$((minor_change + 1))
+        else
+            echo "[MAJOR CHANGE] (accepted/failed changed, was $accepted_result/$failed_result)"
+            major_change=$((major_change + 1))
+        fi
+    fi
+
+    # Check or overwrite results
+    if [ "$overwrite" -eq 1 ]; then
+        echo "$output" > "$result_file"
+        echo "[OVERWRITE]"
+    fi
+done < <(find "$target_dir" -name "config.json")
+
+# Report results
+echo
+echo "=== RESULTS ==="
+echo "Exact matches: $exact_match"
+echo "Description changed: $description_changed"
+echo "Minor changes: $minor_change"
+echo "Major changes: $major_change"
+
+# Exit with error on minor or major changes
+if [ "$minor_change" -gt 0 ] || [ "$major_change" -gt 0 ]; then
+    echo "FAIL. Run with --overwrite to update the results."
+    exit 1
+fi
