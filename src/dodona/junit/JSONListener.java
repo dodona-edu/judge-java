@@ -11,9 +11,6 @@ import dodona.feedback.StartContext;
 import dodona.feedback.StartTab;
 import dodona.feedback.StartTestcase;
 import dodona.feedback.Status;
-import dodona.i18n.I18nTabTitle;
-import dodona.i18n.I18nTestDescription;
-import dodona.i18n.Language;
 import dodona.json.Json;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
@@ -21,20 +18,16 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 import org.junit.runners.model.TestTimedOutException;
 
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.PropertyResourceBundle;
-import java.util.ResourceBundle;
 
 public class JSONListener extends RunListener {
     private static final int STACKSIZE = 50;
 
-    private final ResourceBundle descriptions;
     private final PrintStream writer;
     private final Json json;
 
@@ -44,25 +37,8 @@ public class JSONListener extends RunListener {
     }
 
     public JSONListener(PrintStream writer) {
-        this.descriptions = getBundleIfExists("descriptions", Language.current());
         this.writer = writer;
         this.json = new Json();
-    }
-
-    /**
-     * Gets the given resource bundle for the current language, if it exists.
-     *
-     * @param base the base name of the resource bundle
-     * @return the bundle if it exists, or null otherwise
-     */
-    private static ResourceBundle getBundleIfExists(final String base, final Language language) {
-        try {
-            final String bundleName = String.format("%s.%s.properties", base, language.getIdentifier());
-            final InputStream bundleStream = JSONListener.class.getClassLoader().getResourceAsStream(bundleName);
-            return new PropertyResourceBundle(bundleStream);
-        } catch (final Exception exception) {
-            return null;
-        }
     }
 
     private void write(Object src) {
@@ -70,16 +46,17 @@ public class JSONListener extends RunListener {
     }
 
     /* COMPLETE RUN */
-    public void beforeExecution() {}
+    public void beforeExecution() {
+    }
 
-    public void afterExecution() {}
+    public void afterExecution() {
+    }
 
     public void beforeTab(Description description) {
-        final String title = this.getI18nTabTitle(description)
-            .orElseGet(() -> this.getTabTitle(description)
-                .orElse(TabTitle.DEFAULT));
+        final String title = this.getTabTitle(description)
+                .orElse(TabTitle.DEFAULT);
         final Permission permission = this.getTabPermission(description)
-            .orElse(TabPermission.DEFAULT);
+                .orElse(TabPermission.DEFAULT);
         write(new StartTab(title, permission));
     }
 
@@ -89,7 +66,7 @@ public class JSONListener extends RunListener {
 
     public void beforeTest(Description description) {
         final String title = this.getDescription(description);
-        if(depth < 3) {
+        if (depth < 3) {
             // An exception got thrown outside a tab because the test class is incorrect
             write(new StartTab("Loading tests"));
         }
@@ -97,46 +74,50 @@ public class JSONListener extends RunListener {
     }
 
     public void aftertest(Failure failure) {
-        if(failure == null) {
+        if (failure == null) {
             write(new CloseContext(true));
         } else {
             Throwable thrown = failure.getException();
             List<Message> feedback = new ArrayList<>();
-            if(thrown instanceof AnnotatedThrowable) {
+            if (thrown instanceof AnnotatedThrowable) {
                 feedback = ((AnnotatedThrowable) thrown).getFeedback();
                 thrown = thrown.getCause();
             }
 
-            if(thrown instanceof TestCarryingThrowable) {
+            if (thrown instanceof TestCarryingThrowable) {
                 write(new StartTestcase(Message.plain("")));
                 write(((TestCarryingThrowable) thrown).getStartTest());
                 ((TestCarryingThrowable) thrown).getMessages().stream().map(AppendMessage::new).forEach(this::write);
                 write(((TestCarryingThrowable) thrown).getCloseTest());
-            } else if(thrown instanceof AssertionError) {
+            } else if (thrown instanceof AssertionError) {
                 write(new EscalateStatus(Status.WRONG, "Fout"));
                 write(new StartTestcase(Message.code(thrown.getMessage() == null ? "" : thrown.getMessage())));
             } else {
                 Throwable deepest = thrown;
-                while(deepest.getCause() != null) deepest = deepest.getCause();
+                while (deepest.getCause() != null)
+                    deepest = deepest.getCause();
                 write(new StartTestcase(Message.code(deepest.toString())));
                 if (thrown instanceof TestTimedOutException) {
                     write(new EscalateStatus(Status.TIME_LIMIT_EXCEEDED, "Tijdslimiet overschreden"));
                 } else {
                     write(new EscalateStatus(Status.RUNTIME_ERROR, "Uitvoeringsfout"));
                 }
-                while(thrown != null) {
+                while (thrown != null) {
                     StringBuilder message = new StringBuilder();
                     message.append("Caused by " + thrown);
                     StackTraceElement[] stacktrace = thrown.getStackTrace();
                     boolean leftDefaultPackage = false;
-                    for(int i = 0; i < stacktrace.length && i < STACKSIZE; i++) {
+                    for (int i = 0; i < stacktrace.length && i < STACKSIZE; i++) {
                         // student code in default package
                         boolean inDefaultPackage = stacktrace[i].getClassName().indexOf('.') < 0;
-                        if(leftDefaultPackage && !inDefaultPackage) break;
-                        if(inDefaultPackage) leftDefaultPackage = true;
+                        if (leftDefaultPackage && !inDefaultPackage)
+                            break;
+                        if (inDefaultPackage)
+                            leftDefaultPackage = true;
                         message.append("\n at " + stacktrace[i].toString());
                     }
-                    if(stacktrace.length >= STACKSIZE) message.append("\n ...");
+                    if (stacktrace.length >= STACKSIZE)
+                        message.append("\n ...");
                     write(new AppendMessage(Message.code(message.toString())));
                     thrown = thrown.getCause();
                 }
@@ -147,7 +128,7 @@ public class JSONListener extends RunListener {
             write(new CloseTestcase(false));
             write(new CloseContext(false));
 
-            if(depth < 3) {
+            if (depth < 3) {
                 write(new CloseTab());
             }
         }
@@ -160,39 +141,8 @@ public class JSONListener extends RunListener {
      * @return the human-friendly version
      */
     private String getDescription(final Description desc) {
-        return getI18nTestDescription(desc)
-            .orElseGet(() -> getTestDescription(desc)
-                .orElse(desc.getDisplayName()));
-    }
-
-    /**
-     * Parse a @I18nTabTitle annotation.
-     *
-     * @param desc the description
-     * @return the value of the I18nTabTitle annotation if available
-     */
-    private Optional<String> getI18nTabTitle(final Description desc) {
-        return Optional.ofNullable(this.descriptions).flatMap(bundle ->
-            Optional.ofNullable(desc.getAnnotation(I18nTabTitle.class))
-                .map(I18nTabTitle::value)
-                .filter(bundle::containsKey)
-                .map(bundle::getString)
-        );
-    }
-
-    /**
-     * Parse a @I18nTestDescription annotation.
-     *
-     * @param desc the description
-     * @return the value of the I18nTestDescription annotation if available
-     */
-    private Optional<String> getI18nTestDescription(final Description desc) {
-        return Optional.ofNullable(this.descriptions).flatMap(bundle ->
-            Optional.ofNullable(desc.getAnnotation(I18nTestDescription.class))
-                .map(I18nTestDescription::value)
-                .filter(bundle::containsKey)
-                .map(bundle::getString)
-        );
+        return getTestDescription(desc)
+                .orElse(desc.getDisplayName());
     }
 
     /**
@@ -223,8 +173,8 @@ public class JSONListener extends RunListener {
      */
     private static Optional<String> getTestDescription(final Description desc) {
         return Optional
-            .ofNullable(desc.getAnnotation(TestDescription.class))
-            .map(TestDescription::value);
+                .ofNullable(desc.getAnnotation(TestDescription.class))
+                .map(TestDescription::value);
     }
 
     /* Ugly internals */
@@ -240,12 +190,14 @@ public class JSONListener extends RunListener {
     }
 
     public void testSuiteStarted(Description description) throws Exception {
-        if(depth++ != 2) return;
+        if (depth++ != 2)
+            return;
         beforeTab(description);
     }
 
     public void testSuiteFinished(Description description) throws Exception {
-        if(--depth != 2) return;
+        if (--depth != 2)
+            return;
         afterTab();
     }
 
@@ -268,13 +220,14 @@ public class JSONListener extends RunListener {
     public void testAssumptionFailure(Failure failure) {
         StringWriter stackCollector = new StringWriter();
         stackCollector.append("testAssumptionFailure in " +
-            failure.getTestHeader() + ": " +
-            failure.getException().getMessage() + "\n");
+                failure.getTestHeader() + ": " +
+                failure.getException().getMessage() + "\n");
         failure.getException().printStackTrace(new PrintWriter(stackCollector));
 
         write(new AppendMessage(Message.internalError(stackCollector.toString())));
     }
 
-    public void testIgnored(Description description) throws Exception {}
+    public void testIgnored(Description description) throws Exception {
+    }
 
 }
