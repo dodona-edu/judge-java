@@ -26,7 +26,7 @@ minor_change=0
 major_change=0
 
 # Find all config.json files in target directory
-while read config; do
+for config in "$target_dir"/**/config.json; do
     test_dir="$(dirname "$config")"
     
     # Extract config values
@@ -80,16 +80,16 @@ while read config; do
     rm -r "$workdir"
 
     # Count accepted and failed in output
-    accepted_output="$(echo "$output" | grep '"accepted": true' | wc -l)"
-    failed_output="$(echo "$output" | grep '"accepted": false' | wc -l)"
+    accepted_output="$(echo "$output" | jq -s 'map(select(.accepted == true)) | length')"
+    failed_output="$(echo "$output" | jq -s 'map(select(.accepted == false)) | length')"
     echo -en "$accepted_output accepted, $failed_output failed\t"
 
 
 
     if [ -f "$result_file" ]; then
         # Count accepted and failed in result
-        accepted_result="$(grep '"accepted": true' "$result_file" | wc -l)"
-        failed_result="$(grep '"accepted": false' "$result_file" | wc -l)"
+        accepted_result="$(jq -s 'map(select(.accepted == true)) | length' "$result_file" )"
+        failed_result="$(jq -s 'map(select(.accepted == true)) | length' "$result_file" )"
 
 
         # First check if files are exact using diff, then check if they differ except '.description', then check they differ in accepted or failed
@@ -113,7 +113,7 @@ while read config; do
         echo "$output" > "$result_file"
         echo "[OVERWRITE]"
     fi
-done < <(find "$target_dir" -name "config.json")
+done
 
 # Report results
 echo
