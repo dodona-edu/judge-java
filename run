@@ -231,7 +231,7 @@ public class Import {
 }
 HERE
 if ! javac -cp . -d "$importclass" "$importclass/Import.java" >/dev/null 2>&1; then
-    dodona start-context -f plain -d "$(printf "Your submission does not contain a class "%s", so your code could not be tested." "${filename%.java}")"
+    dodona start-context -f plain -d "$(printf "Your submission does not contain a class \"%s\", so your code could not be tested." "${filename%.java}")"
     dodona close-context -A
     if grep -q '^package' "$filename"; then
         dodona append-message -f callout -d "Are you sure you put your submitted class in the default package? Your class will be put in the default package if you remove the package statement."
