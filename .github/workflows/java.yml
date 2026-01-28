@@ -1,18 +1,17 @@
 name: Java
 
 on:
-  pull_request:
   push:
 
 jobs:
   example-exercises:
     runs-on: ubuntu-latest
     container:
-      image: openjdk:12-alpine
+      image: eclipse-temurin:21
 
     steps:
     - uses: actions/checkout@v1
     - name: Install dependencies
-      run: apk add --no-cache jq=1.6-r0
+      run: apt update && apt install -y jq
     - name: Evaluate sample exercises
       run: ./integration-tests/run

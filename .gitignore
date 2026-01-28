@@ -1,6 +1,8 @@
 .idea/
 build/
 dist/
+out/
+dodona-java
 testing/*.class
 testing/*.jar
 testing/*.java
