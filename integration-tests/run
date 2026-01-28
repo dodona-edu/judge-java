@@ -1,15 +1,20 @@
 #!/usr/bin/env bash
 set -e
+shopt -s globstar
 
 # Default values
 target_dir="integration-tests"
 overwrite=0
+verbose=0
 
 # Parse arguments
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --overwrite)
             overwrite=1
+            ;;
+        -v|--verbose)
+            verbose=1
             ;;
         *)
             target_dir="$1"
@@ -25,8 +30,13 @@ description_changed=0
 minor_change=0
 major_change=0
 
+err_out="/dev/null"
+if [ $verbose -gt 0 ]; then
+    err_out="/dev/stderr"
+fi
+
 # Find all config.json files in target directory
-for config in "$target_dir"/**/config.json; do
+for config in $target_dir/**/config.json; do
     test_dir="$(dirname "$config")"
     
     # Extract config values
@@ -69,7 +79,7 @@ for config in "$target_dir"/**/config.json; do
           , "memory_limit": 1000000000
           , "source": "'"$judge/$source"'"
           }' \
-          | (timeout -k 10s 60s "$judge/run" 2> /dev/null) \
+          | (timeout -k 10s 60s "$judge/run" 2> "$err_out") \
           | jq --sort-keys 'if(.command == "append-message")
                 then .message.description |= gsub("\n at [^\n]+\\([^)]+\\)"; "")
                 else .
@@ -93,10 +103,11 @@ for config in "$target_dir"/**/config.json; do
 
 
         # First check if files are exact using diff, then check if they differ except '.description', then check they differ in accepted or failed
-        if diff "$result_file" <(echo "$output") > /dev/null; then
+
+        if diff -c "$result_file" <(echo "$output") > "$err_out"; then
             echo "[EXACT MATCH]"
             exact_match=$((exact_match + 1))
-        elif diff <(jq "del(.description)" "$result_file") <(echo "$output" | jq "del(.description)") > /dev/null; then
+        elif diff -c <(jq "del(.description)" "$result_file") <(echo "$output" | jq "del(.description)") > "$err_out"; then
             echo "[DESCRIPTION CHANGED]"
             description_changed=$((description_changed + 1))
         elif [ "$accepted_output" -eq "$accepted_result" ] && [ "$failed_output" -eq "$failed_result" ]; then
