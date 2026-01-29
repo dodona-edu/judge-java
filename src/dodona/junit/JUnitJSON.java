@@ -26,40 +26,9 @@ public class JUnitJSON {
 
         Locale.setDefault(Locale.Category.FORMAT, new Locale("en_US_POSIX"));
 
-        NoExitSecurityManager sm = new NoExitSecurityManager(System.getSecurityManager());
-        System.setSecurityManager(sm);
         JUnitCore core = new JUnitCore();
         core.addListener(new JSONListener());
         core.run(new Class<?>[] { testSuite });
-        System.setSecurityManager(sm.getPrevious());
-    }
-
-    private static class NoExitSecurityManager extends SecurityManager {
-        private Optional<SecurityManager> previous;
-
-        public NoExitSecurityManager(SecurityManager previous) {
-            this.previous = Optional.ofNullable(previous);
-        }
-
-        @Override
-        public void checkPermission(Permission perm) {
-            previous.ifPresent(sm -> sm.checkPermission(perm));
-        }
-
-        @Override
-        public void checkPermission(Permission perm, Object context) {
-            previous.ifPresent(sm -> sm.checkPermission(perm, context));
-        }
-
-        @Override
-        public void checkExit(int status) {
-            super.checkExit(status);
-            throw new ExitException(status);
-        }
-
-        public SecurityManager getPrevious() {
-            return previous.orElse(null);
-        }
     }
 
 }
