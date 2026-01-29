@@ -43,16 +43,16 @@ explain_compilation_error() {
     case "$1" in
         *"should be declared in a file named"*)
             # Wrong class name.
-            printf "Your class should be called "%s".\n" "${filename%.java}"
+            printf "Your class should be called \"%s\".\n" "${filename%.java}"
             ;;
         *"cannot find symbol"*)
             # Cannot find symbol - forgotten import.
             class_name="$(echo "$1" | sed -n '/symbol: *class/s/.*class \(\S\+\)\s*.*/\1/p')"
-            [ -z "$class_name" ] || printf "You are trying to use an unknown class "%s". Might you have forgotten an import?\n" "$class_name"
+            [ -z "$class_name" ] || printf "You are trying to use an unknown class \"%s\". Might you have forgotten an import?\n" "$class_name"
             ;;
         *"assign a value to final variable"*)
             # Assignment to final variable.
-            printf "Variables declared to be "final" can be assigned to only once. Remove the keyword "final" from the variable "%s" to solve this.\n" "$(echo "$1" | grep -o "final variable \S\+" | sed "s/final variable //" | sed "s/\\\n//")"
+            printf "Variables declared to be \"final\" can be assigned to only once. Remove the keyword \"final\" from the variable \"%s\" to solve this.\n" "$(echo "$1" | grep -o "final variable \S\+" | sed "s/final variable //" | sed "s/\\\n//")"
             ;;
     esac
 }
