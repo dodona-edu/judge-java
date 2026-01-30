@@ -91,3 +91,11 @@ Since the tests are mostly just jUnit tests, IntelliJ and other IDE's provide su
 Per exercise, create a new project. The `config.json` file should be in the project root. Mark (or create) the `workdir`, `evaluation` and `solution` directories as "sources root". Add jUnit 4 as a dependency of the project.
 
 If your exercises use some Dodona-specific features, such as the `TabTitle` or the `AssertionStubber`, add the Judge as a dependency. Opening this repository as an IntelliJ project should allow you to create a JAR.
+
+## Developing the judge
+
+While developing, you can use `./integration-tests/run` to validate whether the judge is working properly. It checks the judge's output JSON against previous results (stored as `result.json`) and monitors whether something has changed.
+
+You can also use `./integration-tests/run <path-to-repo>` to run the same checks on an exercise repository, which is useful to validate a larger set op exercises.
+
+With `---overwrite`, you can overwrite previous `result.json` files with the current output, and with `-v` you can check for judge error output and view the exact changes when output differs.

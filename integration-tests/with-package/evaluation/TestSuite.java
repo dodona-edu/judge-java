@@ -4,6 +4,6 @@ import org.junit.runner.RunWith;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-    TranslatedTest.class,
+    SimpleTest.class,
 })
 public class TestSuite {}

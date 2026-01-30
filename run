@@ -19,10 +19,6 @@ judge="$(jq -r '.judge' "$config")"
 workdir="$(jq -r '.workdir' "$config")"
 filename="$(jq -r '.filename' "$config")"
 
-# Natural language of the user
-natural_language="$(jq -r '.natural_language' "$config")"
-. "$judge"/i18n/"$natural_language"
-
 # memory limit with some margin
 memory_limit="$(jq -r '.memory_limit' "$config")"
 memory_limit="$(( memory_limit * 9 / 10000 ))"
@@ -47,16 +43,16 @@ explain_compilation_error() {
     case "$1" in
         *"should be declared in a file named"*)
             # Wrong class name.
-            printf "$i18n_wrong_class_name\n" "${filename%.java}"
+            printf "Your class should be called \"%s\".\n" "${filename%.java}"
             ;;
         *"cannot find symbol"*)
             # Cannot find symbol - forgotten import.
             class_name="$(echo "$1" | sed -n '/symbol: *class/s/.*class \(\S\+\)\s*.*/\1/p')"
-            [ -z "$class_name" ] || printf "$i18n_forgot_import\n" "$class_name"
+            [ -z "$class_name" ] || printf "You are trying to use an unknown class \"%s\". Might you have forgotten an import?\n" "$class_name"
             ;;
         *"assign a value to final variable"*)
             # Assignment to final variable.
-            printf "$i18n_assign_to_final\n" "$(echo "$1" | grep -o "final variable \S\+" | sed "s/final variable //" | sed "s/\\\n//")"
+            printf "Variables declared to be \"final\" can be assigned to only once. Remove the keyword \"final\" from the variable \"%s\" to solve this.\n" "$(echo "$1" | grep -o "final variable \S\+" | sed "s/final variable //" | sed "s/\\\n//")"
             ;;
     esac
 }
@@ -64,7 +60,7 @@ explain_compilation_error() {
 explain_compilation_warning() {
     case "$1" in
         *"found raw type"*)
-            echo "$i18n_raw_type"
+            echo "Generic classes should be passed a type."
             ;;
     esac
 }
@@ -72,7 +68,7 @@ explain_compilation_warning() {
 parse_compilation_error_staff() {
     # arg1: 1 compiler log
     dodona start-context
-    dodona start-testcase -f plain -d "$i18n_compilation_error"
+    dodona start-testcase -f plain -d "Compilation error"
     dodona append-message -f code -p staff -d "$1"
     dodona close-testcase -A
     dodona close-context
@@ -90,12 +86,12 @@ parse_compilation_error_student() {
         # warning
         type='warning'
         explanation="$(explain_compilation_warning "$1")"
-        testcase_msg="$i18n_compilation_warning"
+        testcase_msg="Compilation warning"
     else
         # error
         type='error'
         explanation="$(explain_compilation_error "$1")"
-        testcase_msg="$i18n_compilation_error"
+        testcase_msg="Compilation error"
     fi
 
     # Start the case, add the explanation message if it exists, add compilation output as message
@@ -178,18 +174,18 @@ compilation_failed() {
     # Build the compilation counts message.
     case "$compile_error_count" in
     0) described_error_count="" ;;
-    1) described_error_count="1 $i18n_error" ;;
-    *) described_error_count="$compile_error_count $i18n_errors" ;;
+    1) described_error_count="1 error" ;;
+    *) described_error_count="$compile_error_count errors" ;;
     esac
 
     case "$compile_warning_count" in
     0) described_warning_count="" ;;
-    1) described_warning_count="1 $i18n_warning" ;;
-    *) described_warning_count="$compile_error_count $i18n_warnings" ;;
+    1) described_warning_count="1 warning" ;;
+    *) described_warning_count="$compile_error_count warnings" ;;
     esac
 
     [ "$compile_error_count" -ne 0 -a "$compile_warning_count" -ne 0 ] \
-        && described_both_count="$described_error_count $i18n_and $described_warning_count" \
+        && described_both_count="$described_error_count and $described_warning_count" \
         || described_both_count="$described_error_count$described_warning_count"
 
     dodona append-message -f callout -d "$(printf "$callout" "$described_both_count")"
@@ -213,7 +209,7 @@ worklibs="$([ -d "$workdir" ] && find "$workdir" -name '*.jar' | xargs echo | tr
 
 # Compiling the workdir given code
 if ! find . -name '*.java' | xargs --no-run-if-empty javac -cp ".:${worklibs}:${testlibs}" -d . -sourcepath . > "$compilation" 2>&1; then
-    compilation_failed "$compilation" "$i18n_workdir_compilation_message" "$i18n_workdir_compilation_summary" 'staff' 0
+    compilation_failed "$compilation" "Something went wrong while compiling the base code for this exercise. Contact your teacher." "Error in base code" 'staff' 0
 fi
 
 # Create the Input.java class, containing the submitted code
@@ -225,7 +221,7 @@ sed -i '1,5{s/^package [a-zA-Z0-9_.]*;//}' "$filename"
 # Compiling the user code
 [ "$allow_compilation_warnings" = 'true' ] || compile_opt='-Werror'
 if ! javac -cp ".:${worklibs}" -Xlint:all $compile_opt "$filename" > "$compilation" 2>&1; then
-    compilation_failed "$compilation" "$i18n_user_compilation_message" "%s" 'student' 1
+    compilation_failed "$compilation" "Your code cannot be compiled and therefore not tested. The compiler reported %s." "%s" 'student' 1
 fi
 
 # Verify the student submitted the requested class
@@ -235,13 +231,13 @@ public class Import {
 }
 HERE
 if ! javac -cp . -d "$importclass" "$importclass/Import.java" >/dev/null 2>&1; then
-    dodona start-context -f plain -d "$(printf "$i18n_class_not_submitted" "${filename%.java}")"
+    dodona start-context -f plain -d "$(printf "Your submission does not contain a class \"%s\", so your code could not be tested." "${filename%.java}")"
     dodona close-context -A
     if grep -q '^package' "$filename"; then
-        dodona append-message -f callout -d "$i18n_default_package"
+        dodona append-message -f callout -d "Are you sure you put your submitted class in the default package? Your class will be put in the default package if you remove the package statement."
     fi
     dodona close-tab
-    dodona close-judgement -A -e 'compilation error' -h "$i18n_compilation_error"
+    dodona close-judgement -A -e 'compilation error' -h "Compilation error"
     exit 0
 fi
 
@@ -252,7 +248,7 @@ jar -cf "judge.jar" -C /tmp/build .
 
 # Compiling the tests
 if ! find "$resources" -name '*.java' | xargs javac -Xdiags:verbose -cp ".:${resources}:${worklibs}:${testlibs}:judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
-    compilation_failed "$compilation" "$i18n_test_compilation_message" "$i18n_test_compilation_summary" 'student' 0
+    compilation_failed "$compilation" "Something went wrong while compiling the tests for this exercise." "Error in the tests" 'student' 0
 fi
 
 # Everything is compiled

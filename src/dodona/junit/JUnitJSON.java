@@ -12,15 +12,15 @@ import dodona.feedback.AppendMessage;
 import dodona.json.Json;
 
 public class JUnitJSON {
-    public static final String PROPERTY_LANGUAGE = "dodona.language";
     public static final String PROPERTY_OUTPUT_CUTOFF = "dodona.output_cutoff";
 
     public static void main(String... args) {
         Class<?> testSuite = null;
         try {
             testSuite = Class.forName("TestSuite", true, currentThread().getContextClassLoader());
-        } catch(ClassNotFoundException e) {
-            System.out.println(new Json().asString(new AppendMessage(Message.internalError("TestSuite class not found."))));
+        } catch (ClassNotFoundException e) {
+            System.out.println(
+                    new Json().asString(new AppendMessage(Message.internalError("TestSuite class not found."))));
             System.exit(1);
         }
 
@@ -30,7 +30,7 @@ public class JUnitJSON {
         System.setSecurityManager(sm);
         JUnitCore core = new JUnitCore();
         core.addListener(new JSONListener());
-        core.run(new Class<?>[]{ testSuite });
+        core.run(new Class<?>[] { testSuite });
         System.setSecurityManager(sm.getPrevious());
     }
 
@@ -41,15 +41,18 @@ public class JUnitJSON {
             this.previous = Optional.ofNullable(previous);
         }
 
-        @Override public void checkPermission(Permission perm) {
+        @Override
+        public void checkPermission(Permission perm) {
             previous.ifPresent(sm -> sm.checkPermission(perm));
         }
 
-        @Override public void checkPermission(Permission perm, Object context) {
+        @Override
+        public void checkPermission(Permission perm, Object context) {
             previous.ifPresent(sm -> sm.checkPermission(perm, context));
         }
 
-        @Override public void checkExit(int status) {
+        @Override
+        public void checkExit(int status) {
             super.checkExit(status);
             throw new ExitException(status);
         }

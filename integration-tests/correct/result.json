@@ -13,12 +13,12 @@
   "command": "start-tab",
   "hidden": false,
   "permission": "student",
-  "title": "Vertaalde titel"
+  "title": "Tab title"
 }
 {
   "command": "start-context",
   "description": {
-    "description": "Vertaalde Test",
+    "description": "Test description",
     "format": "code"
   }
 }
