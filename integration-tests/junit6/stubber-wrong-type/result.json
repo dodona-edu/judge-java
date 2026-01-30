@@ -18,7 +18,7 @@
 {
   "command": "start-context",
   "description": {
-    "description": "testIntArrayList",
+    "description": "testIntArrayList()",
     "format": "code"
   }
 }
@@ -47,7 +47,7 @@
 {
   "command": "start-context",
   "description": {
-    "description": "testIntArray",
+    "description": "testIntArray()",
     "format": "code"
   }
 }

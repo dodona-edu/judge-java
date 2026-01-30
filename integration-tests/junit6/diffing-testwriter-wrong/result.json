@@ -18,7 +18,7 @@
 {
   "command": "start-context",
   "description": {
-    "description": "test",
+    "description": "test()",
     "format": "code"
   }
 }

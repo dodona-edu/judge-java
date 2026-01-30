@@ -18,7 +18,7 @@
 {
   "command": "start-context",
   "description": {
-    "description": "testAdd",
+    "description": "testAdd()",
     "format": "code"
   }
 }
@@ -32,7 +32,7 @@
 {
   "command": "start-testcase",
   "description": {
-    "description": "The sum is incorrect expected:<15> but was:<16>",
+    "description": "The sum is incorrect ==> expected: <15> but was: <16>",
     "format": "code"
   }
 }

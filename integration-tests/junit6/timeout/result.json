@@ -18,28 +18,28 @@
 {
   "command": "start-context",
   "description": {
-    "description": "test",
+    "description": "test()",
     "format": "code"
   }
 }
 {
   "command": "start-testcase",
   "description": {
-    "description": "org.junit.runners.model.TestTimedOutException: test timed out after 1 milliseconds",
+    "description": "java.util.concurrent.TimeoutException: test() timed out after 1 millisecond",
     "format": "code"
   }
 }
 {
   "command": "escalate-status",
   "status": {
-    "enum": "time limit exceeded",
-    "human": "Time limit exceeded"
+    "enum": "runtime error",
+    "human": "Runtime error"
   }
 }
 {
   "command": "append-message",
   "message": {
-    "description": "Caused by org.junit.runners.model.TestTimedOutException: test timed out after 1 milliseconds",
+    "description": "Caused by java.util.concurrent.TimeoutException: test() timed out after 1 millisecond",
     "format": "code"
   }
 }
