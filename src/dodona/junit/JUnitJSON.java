@@ -1,15 +1,16 @@
 package dodona.junit;
 
-import java.util.Optional;
-import java.util.Locale;
-import java.security.Permission;
-import static java.lang.Thread.currentThread;
-
-import org.junit.runner.JUnitCore;
-
-import dodona.feedback.Message;
 import dodona.feedback.AppendMessage;
+import dodona.feedback.Message;
 import dodona.json.Json;
+import org.junit.platform.launcher.Launcher;
+import org.junit.platform.launcher.LauncherDiscoveryRequest;
+import org.junit.platform.launcher.core.LauncherFactory;
+import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
+import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
+
+import java.util.Locale;
+import static java.lang.Thread.currentThread;
 
 public class JUnitJSON {
     public static final String PROPERTY_OUTPUT_CUTOFF = "dodona.output_cutoff";
@@ -26,9 +27,12 @@ public class JUnitJSON {
 
         Locale.setDefault(Locale.Category.FORMAT, new Locale("en_US_POSIX"));
 
-        JUnitCore core = new JUnitCore();
-        core.addListener(new JSONListener());
-        core.run(new Class<?>[] { testSuite });
-    }
+        LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
+                .selectors(selectClass(testSuite))
+                .build();
 
+        Launcher launcher = LauncherFactory.create();
+        launcher.registerTestExecutionListeners(new JSONListener());
+        launcher.execute(request);
+    }
 }

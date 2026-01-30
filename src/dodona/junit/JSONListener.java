@@ -12,24 +12,28 @@ import dodona.feedback.StartTab;
 import dodona.feedback.StartTestcase;
 import dodona.feedback.Status;
 import dodona.json.Json;
-import org.junit.runner.Description;
-import org.junit.runner.Result;
-import org.junit.runner.notification.Failure;
-import org.junit.runner.notification.RunListener;
+import org.junit.platform.engine.TestExecutionResult;
+import org.junit.platform.engine.TestSource;
+import org.junit.platform.engine.support.descriptor.ClassSource;
+import org.junit.platform.engine.support.descriptor.MethodSource;
+import org.junit.platform.launcher.TestExecutionListener;
+import org.junit.platform.launcher.TestIdentifier;
+import org.junit.platform.launcher.TestPlan;
 import org.junit.runners.model.TestTimedOutException;
 
 import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
-public class JSONListener extends RunListener {
+public class JSONListener implements TestExecutionListener {
     private static final int STACKSIZE = 50;
 
     private final PrintStream writer;
     private final Json json;
+    private TestPlan testPlan;
 
     public JSONListener() {
         this(System.out);
@@ -45,17 +49,42 @@ public class JSONListener extends RunListener {
         writer.print(json.asString(src));
     }
 
-    /* COMPLETE RUN */
-    public void beforeExecution() {
+    @Override
+    public void testPlanExecutionStarted(TestPlan testPlan) {
+        this.testPlan = testPlan;
     }
 
-    public void afterExecution() {
+    @Override
+    public void testPlanExecutionFinished(TestPlan testPlan) {
+        this.testPlan = null;
     }
 
-    public void beforeTab(Description description) {
-        final String title = this.getTabTitle(description)
+    @Override
+    public void executionStarted(TestIdentifier testIdentifier) {
+        if (isTab(testIdentifier)) {
+            beforeTab(testIdentifier);
+        } else if (testIdentifier.isTest()) {
+            beforeTest(testIdentifier);
+        }
+    }
+
+    @Override
+    public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
+        if (isTab(testIdentifier)) {
+            afterTab();
+        } else if (testIdentifier.isTest()) {
+            afterTest(testExecutionResult);
+        }
+    }
+
+    @Override
+    public void executionSkipped(TestIdentifier testIdentifier, String reason) {
+    }
+
+    public void beforeTab(TestIdentifier testIdentifier) {
+        final String title = getTabTitle(testIdentifier)
                 .orElse(TabTitle.DEFAULT);
-        final Permission permission = this.getTabPermission(description)
+        final Permission permission = getTabPermission(testIdentifier)
                 .orElse(TabPermission.DEFAULT);
         write(new StartTab(title, permission));
     }
@@ -64,170 +93,124 @@ public class JSONListener extends RunListener {
         write(new CloseTab());
     }
 
-    public void beforeTest(Description description) {
-        final String title = this.getDescription(description);
-        if (depth < 3) {
-            // An exception got thrown outside a tab because the test class is incorrect
-            write(new StartTab("Loading tests"));
-        }
+    public void beforeTest(TestIdentifier testIdentifier) {
+        final String title = getDescription(testIdentifier);
         write(new StartContext(Message.code(title)));
     }
 
-    public void aftertest(Failure failure) {
-        if (failure == null) {
+    public void afterTest(TestExecutionResult result) {
+        if (result.getStatus() == TestExecutionResult.Status.SUCCESSFUL) {
             write(new CloseContext(true));
         } else {
-            Throwable thrown = failure.getException();
-            List<Message> feedback = new ArrayList<>();
-            if (thrown instanceof AnnotatedThrowable) {
-                feedback = ((AnnotatedThrowable) thrown).getFeedback();
-                thrown = thrown.getCause();
-            }
-
-            if (thrown instanceof TestCarryingThrowable) {
-                write(new StartTestcase(Message.plain("")));
-                write(((TestCarryingThrowable) thrown).getStartTest());
-                ((TestCarryingThrowable) thrown).getMessages().stream().map(AppendMessage::new).forEach(this::write);
-                write(((TestCarryingThrowable) thrown).getCloseTest());
-            } else if (thrown instanceof AssertionError) {
-                write(new EscalateStatus(Status.WRONG, "Fout"));
-                write(new StartTestcase(Message.code(thrown.getMessage() == null ? "" : thrown.getMessage())));
-            } else {
-                Throwable deepest = thrown;
-                while (deepest.getCause() != null)
-                    deepest = deepest.getCause();
-                write(new StartTestcase(Message.code(deepest.toString())));
-                if (thrown instanceof TestTimedOutException) {
-                    write(new EscalateStatus(Status.TIME_LIMIT_EXCEEDED, "Tijdslimiet overschreden"));
-                } else {
-                    write(new EscalateStatus(Status.RUNTIME_ERROR, "Uitvoeringsfout"));
-                }
-                while (thrown != null) {
-                    StringBuilder message = new StringBuilder();
-                    message.append("Caused by " + thrown);
-                    StackTraceElement[] stacktrace = thrown.getStackTrace();
-                    boolean leftDefaultPackage = false;
-                    for (int i = 0; i < stacktrace.length && i < STACKSIZE; i++) {
-                        // student code in default package
-                        boolean inDefaultPackage = stacktrace[i].getClassName().indexOf('.') < 0;
-                        if (leftDefaultPackage && !inDefaultPackage)
-                            break;
-                        if (inDefaultPackage)
-                            leftDefaultPackage = true;
-                        message.append("\n at " + stacktrace[i].toString());
-                    }
-                    if (stacktrace.length >= STACKSIZE)
-                        message.append("\n ...");
-                    write(new AppendMessage(Message.code(message.toString())));
-                    thrown = thrown.getCause();
-                }
-
-            }
-
-            feedback.stream().map(AppendMessage::new).forEach(this::write);
-            write(new CloseTestcase(false));
-            write(new CloseContext(false));
-
-            if (depth < 3) {
-                write(new CloseTab());
-            }
+            handleTestFailure(result);
         }
     }
 
-    /**
-     * Get the human-friendly version of the test name.
-     *
-     * @param desc the description
-     * @return the human-friendly version
-     */
-    private String getDescription(final Description desc) {
-        return getTestDescription(desc)
-                .orElse(desc.getDisplayName());
+    private void handleTestFailure(TestExecutionResult result) {
+        Throwable thrown = result.getThrowable().orElse(null);
+        List<Message> feedback = new ArrayList<>();
+
+        if (thrown instanceof AnnotatedThrowable at) {
+            feedback = at.getFeedback();
+            thrown = thrown.getCause();
+        }
+
+        switch (thrown) {
+            case TestCarryingThrowable tct -> handleTestCarryingThrowable(tct);
+            case AssertionError ae -> handleAssertionError(ae);
+            case Throwable t -> handleException(t);
+            case null -> handleUnknownError();
+        }
+
+        feedback.stream().map(AppendMessage::new).forEach(this::write);
+        write(new CloseTestcase(false));
+        write(new CloseContext(false));
     }
 
-    /**
-     * Parse a @TabTitle annotation.
-     *
-     * @param desc the description
-     * @return the value of the TabTitle annotation if available
-     */
-    private Optional<String> getTabTitle(final Description desc) {
-        return Optional.ofNullable(desc.getAnnotation(TabTitle.class)).map(TabTitle::value);
+    private void handleTestCarryingThrowable(TestCarryingThrowable thrown) {
+        write(new StartTestcase(Message.plain("")));
+        write(thrown.getStartTest());
+        thrown.getMessages().stream().map(AppendMessage::new).forEach(this::write);
+        write(thrown.getCloseTest());
     }
 
-    /**
-     * Parse a @TabPermission annotation.
-     *
-     * @param desc the description
-     * @return the value of the TabPermission annotation if available
-     */
-    private Optional<Permission> getTabPermission(final Description desc) {
-        return Optional.ofNullable(desc.getAnnotation(TabPermission.class)).map(TabPermission::value);
+    private void handleAssertionError(AssertionError thrown) {
+        write(new EscalateStatus(Status.WRONG, "Wrong"));
+        write(new StartTestcase(Message.code(thrown.getMessage() == null ? "" : thrown.getMessage())));
     }
 
-    /**
-     * Parse a @TestDescription annotation.
-     *
-     * @param desc the description
-     * @return the value of the TestDescription annotation if available
-     */
-    private static Optional<String> getTestDescription(final Description desc) {
-        return Optional
-                .ofNullable(desc.getAnnotation(TestDescription.class))
-                .map(TestDescription::value);
+    private void handleException(Throwable thrown) {
+        Throwable deepest = thrown;
+        while (deepest.getCause() != null) {
+            deepest = deepest.getCause();
+        }
+        write(new StartTestcase(Message.code(deepest.toString())));
+
+        if (thrown instanceof TestTimedOutException) {
+            write(new EscalateStatus(Status.TIME_LIMIT_EXCEEDED, "Time limit exceeded"));
+        } else {
+            write(new EscalateStatus(Status.RUNTIME_ERROR, "Runtime error"));
+        }
+
+        while (thrown != null) {
+            StringBuilder message = new StringBuilder();
+            message.append("Caused by " + thrown);
+            StackTraceElement[] stacktrace = thrown.getStackTrace();
+            boolean leftDefaultPackage = false;
+            for (int i = 0; i < stacktrace.length && i < STACKSIZE; i++) {
+                boolean inDefaultPackage = stacktrace[i].getClassName().indexOf('.') < 0;
+                if (leftDefaultPackage && !inDefaultPackage) {
+                    break;
+                }
+                if (inDefaultPackage) {
+                    leftDefaultPackage = true;
+                }
+                message.append("\n at " + stacktrace[i].toString());
+            }
+            if (stacktrace.length >= STACKSIZE) {
+                message.append("\n ...");
+            }
+            write(new AppendMessage(Message.code(message.toString())));
+            thrown = thrown.getCause();
+        }
     }
 
-    /* Ugly internals */
-    private int depth;
-
-    public void testRunStarted(Description description) throws Exception {
-        this.depth = 0;
-        beforeExecution();
+    private void handleUnknownError() {
+        write(new EscalateStatus(Status.RUNTIME_ERROR, "Unknown Error"));
+        write(new StartTestcase(Message.plain("Unknown Error")));
     }
 
-    public void testRunFinished(Result result) throws Exception {
-        afterExecution();
+    // Helper to determine if an ID is a "Tab" (Test Class)
+    private boolean isTab(TestIdentifier testIdentifier) {
+        if (!testIdentifier.isContainer() || testPlan == null) {
+            return false;
+        }
+
+        // Check children
+        // If it contains direct tests, it is a Tab.
+        Set<TestIdentifier> children = testPlan.getChildren(testIdentifier);
+        return !children.isEmpty() && children.stream().anyMatch(TestIdentifier::isTest);
     }
 
-    public void testSuiteStarted(Description description) throws Exception {
-        if (depth++ != 2)
-            return;
-        beforeTab(description);
+    private String getDescription(TestIdentifier testIdentifier) {
+        return getAnnotation(testIdentifier, TestDescription.class)
+                .map(TestDescription::value)
+                .orElse(testIdentifier.getDisplayName());
     }
 
-    public void testSuiteFinished(Description description) throws Exception {
-        if (--depth != 2)
-            return;
-        afterTab();
+    private Optional<String> getTabTitle(TestIdentifier testIdentifier) {
+        return getAnnotation(testIdentifier, TabTitle.class).map(TabTitle::value);
     }
 
-    private Failure currentTestFailure = null;
-
-    public void testStarted(Description description) throws Exception {
-        currentTestFailure = null;
-        beforeTest(description);
+    private Optional<Permission> getTabPermission(TestIdentifier testIdentifier) {
+        return getAnnotation(testIdentifier, TabPermission.class).map(TabPermission::value);
     }
 
-    public void testFinished(Description description) throws Exception {
-        aftertest(currentTestFailure);
-        currentTestFailure = null;
+    private <A extends Annotation> Optional<A> getAnnotation(TestIdentifier testIdentifier, Class<A> annotationClass) {
+        return testIdentifier.getSource().flatMap(source -> switch (source) {
+            case ClassSource cs -> Optional.ofNullable(cs.getJavaClass().getAnnotation(annotationClass));
+            case MethodSource ms -> Optional.ofNullable(ms.getJavaMethod().getAnnotation(annotationClass));
+            default -> Optional.empty();
+        });
     }
-
-    public void testFailure(Failure failure) throws Exception {
-        currentTestFailure = failure;
-    }
-
-    public void testAssumptionFailure(Failure failure) {
-        StringWriter stackCollector = new StringWriter();
-        stackCollector.append("testAssumptionFailure in " +
-                failure.getTestHeader() + ": " +
-                failure.getException().getMessage() + "\n");
-        failure.getException().printStackTrace(new PrintWriter(stackCollector));
-
-        write(new AppendMessage(Message.internalError(stackCollector.toString())));
-    }
-
-    public void testIgnored(Description description) throws Exception {
-    }
-
 }
