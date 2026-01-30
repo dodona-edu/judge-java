@@ -1,0 +1,57 @@
+{
+  "command": "start-judgement"
+}
+{
+  "command": "start-tab",
+  "hidden": true,
+  "title": "Compiler"
+}
+{
+  "command": "append-message",
+  "message": {
+    "description": "Your code cannot be compiled and therefore not tested. The compiler reported 1 error.",
+    "format": "callout"
+  }
+}
+{
+  "command": "start-context"
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "Compilation error",
+    "format": "plain"
+  }
+}
+{
+  "command": "append-message",
+  "message": {
+    "description": "CompileErrorStudent.java:5: error: cannot find symbol\n        return tru;\n               ^\n  symbol:   variable tru\n  location: class CompileErrorStudent",
+    "format": "code"
+  }
+}
+{
+  "column": 15,
+  "command": "annotate-code",
+  "row": 4,
+  "text": "cannot find symbol",
+  "type": "error"
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "command": "close-context"
+}
+{
+  "command": "close-tab"
+}
+{
+  "accepted": false,
+  "command": "close-judgement",
+  "status": {
+    "enum": "compilation error",
+    "human": "1 error"
+  }
+}
