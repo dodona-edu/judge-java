@@ -18,7 +18,7 @@
 {
   "command": "start-context",
   "description": {
-    "description": "testExisting(StubberTest)",
+    "description": "testExisting",
     "format": "code"
   }
 }
@@ -29,7 +29,7 @@
 {
   "command": "start-context",
   "description": {
-    "description": "testPrivate(StubberTest)",
+    "description": "testPrivate",
     "format": "code"
   }
 }
@@ -37,7 +37,7 @@
   "command": "escalate-status",
   "status": {
     "enum": "wrong",
-    "human": "Fout"
+    "human": "Wrong"
   }
 }
 {
@@ -58,7 +58,7 @@
 {
   "command": "start-context",
   "description": {
-    "description": "testNonExisting(StubberTest)",
+    "description": "testNonExisting",
     "format": "code"
   }
 }
@@ -66,7 +66,7 @@
   "command": "escalate-status",
   "status": {
     "enum": "wrong",
-    "human": "Fout"
+    "human": "Wrong"
   }
 }
 {
@@ -87,7 +87,7 @@
 {
   "command": "start-context",
   "description": {
-    "description": "testSupertype(StubberTest)",
+    "description": "testSupertype",
     "format": "code"
   }
 }
@@ -98,7 +98,7 @@
 {
   "command": "start-context",
   "description": {
-    "description": "testSubtype(StubberTest)",
+    "description": "testSubtype",
     "format": "code"
   }
 }

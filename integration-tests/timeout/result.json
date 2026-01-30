@@ -18,7 +18,7 @@
 {
   "command": "start-context",
   "description": {
-    "description": "test(SleepyTest)",
+    "description": "test",
     "format": "code"
   }
 }
@@ -33,7 +33,7 @@
   "command": "escalate-status",
   "status": {
     "enum": "time limit exceeded",
-    "human": "Tijdslimiet overschreden"
+    "human": "Time limit exceeded"
   }
 }
 {

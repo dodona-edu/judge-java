@@ -33,7 +33,7 @@
   "command": "escalate-status",
   "status": {
     "enum": "runtime error",
-    "human": "Uitvoeringsfout"
+    "human": "Runtime error"
   }
 }
 {

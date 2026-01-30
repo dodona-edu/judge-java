@@ -18,7 +18,7 @@
 {
   "command": "start-context",
   "description": {
-    "description": "test(StubberTest)",
+    "description": "test",
     "format": "code"
   }
 }
