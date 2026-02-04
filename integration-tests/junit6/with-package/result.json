@@ -7,31 +7,28 @@
   "title": "Compiler"
 }
 {
+  "command": "close-tab"
+}
+{
+  "command": "start-tab",
+  "hidden": false,
+  "permission": "student",
+  "title": "Tab title"
+}
+{
   "command": "start-context",
   "description": {
-    "description": "Your submission does not contain a class \"Translated\", so your code could not be tested.",
-    "format": "plain"
+    "description": "Test description",
+    "format": "code"
   }
 }
 {
-  "accepted": false,
+  "accepted": true,
   "command": "close-context"
-}
-{
-  "command": "append-message",
-  "message": {
-    "description": "Are you sure you put your submitted class in the default package? Your class will be put in the default package if you remove the package statement.",
-    "format": "callout"
-  }
 }
 {
   "command": "close-tab"
 }
 {
-  "accepted": false,
-  "command": "close-judgement",
-  "status": {
-    "enum": "compilation error",
-    "human": "Compilation error"
-  }
+  "command": "close-judgement"
 }
