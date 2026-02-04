@@ -44,7 +44,7 @@
   "command": "start-tab",
   "hidden": false,
   "permission": "student",
-  "title": "Test"
+  "title": "Random Tests"
 }
 {
   "command": "start-context",
@@ -56,15 +56,6 @@
 {
   "accepted": true,
   "command": "close-context"
-}
-{
-  "command": "close-tab"
-}
-{
-  "command": "start-tab",
-  "hidden": false,
-  "permission": "student",
-  "title": "Test"
 }
 {
   "command": "start-context",

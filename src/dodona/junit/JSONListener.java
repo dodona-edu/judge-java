@@ -182,14 +182,21 @@ public class JSONListener implements TestExecutionListener {
 
     // Helper to determine if an ID is a "Tab" (Test Class)
     private boolean isTab(TestIdentifier testIdentifier) {
-        if (!testIdentifier.isContainer() || testPlan == null) {
+        if (!testIdentifier.isContainer() || testPlan == null || testIdentifier.getSource().isEmpty()) {
             return false;
         }
 
-        // Check children
-        // If it contains direct tests, it is a Tab.
-        Set<TestIdentifier> children = testPlan.getChildren(testIdentifier);
-        return !children.isEmpty() && children.stream().anyMatch(TestIdentifier::isTest);
+        String parent = testIdentifier.getParentId().orElse("");
+        if (!parent.contains("TestSuite")) {
+            return false;
+        }
+
+        // Identify tabs more robustly by checking the uniqueId segment type:
+        // - regular JUnit 5 classes use "[class:...]"
+        // - JUnit 4 (vintage) runners use "[runner:...]"
+        // Suites use "[suite:...]" and must NOT be tabs.
+        String uid = testIdentifier.getUniqueId();
+        return (uid.contains("[class:") || uid.contains("[runner:"));
     }
 
     private String getDescription(TestIdentifier testIdentifier) {
