@@ -6,4 +6,4 @@ image="dodona/dodona-java21:latest"
 docker run \
     --mount type=bind,source=$PWD,destination=/home/runner/workdir,readonly \
     "$image" \
-    -- ./integration-tests/run
+    -- ./integration-tests/run -v

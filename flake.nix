@@ -14,7 +14,7 @@
       let
         pkgs = import nixpkgs { inherit system; };
 
-        java = pkgs.jdk;
+        java = pkgs.jdk25;
 
         others = with pkgs; [ moreutils ];
       in {

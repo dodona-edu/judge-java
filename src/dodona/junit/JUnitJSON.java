@@ -25,7 +25,7 @@ public class JUnitJSON {
             System.exit(1);
         }
 
-        Locale.setDefault(Locale.Category.FORMAT, new Locale("en_US_POSIX"));
+        Locale.setDefault(Locale.Category.FORMAT, Locale.forLanguageTag("en_US_POSIX"));
 
         LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
                 .selectors(selectClass(testSuite))
