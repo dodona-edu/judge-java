@@ -25,11 +25,6 @@ dist/judge.jar: $(CLASSES)
 #                                   Phonies                                    #
 # ============================================================================ #
 
-# something wicked
-space :=
-space +=
-$(space) :=
-$(space) +=
 
 .PHONY: jar
 jar: dist/judge.jar

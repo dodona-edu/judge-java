@@ -1,9 +1,9 @@
 
-import org.junit.runners.Suite;
-import org.junit.runner.RunWith;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses({
+@Suite
+@SelectClasses({
     // List of tests to run.
     SimpleTest.class,
     GeneratedTest.class,

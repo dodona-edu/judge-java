@@ -1,0 +1,114 @@
+{
+  "command": "start-judgement"
+}
+{
+  "command": "start-tab",
+  "hidden": true,
+  "title": "Compiler"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "start-tab",
+  "hidden": false,
+  "permission": "student",
+  "title": "Test"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "testExisting",
+    "format": "code"
+  }
+}
+{
+  "accepted": true,
+  "command": "close-context"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "testPrivate",
+    "format": "code"
+  }
+}
+{
+  "command": "escalate-status",
+  "status": {
+    "enum": "wrong",
+    "human": "Wrong"
+  }
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "Inaccessible constructor: private Stubber(). Constructor should have a \"public\" modifier.",
+    "format": "code"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "testNonExisting",
+    "format": "code"
+  }
+}
+{
+  "command": "escalate-status",
+  "status": {
+    "enum": "wrong",
+    "human": "Wrong"
+  }
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "Missing constructor: cannot call Stubber(1.0).",
+    "format": "code"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "testSupertype",
+    "format": "code"
+  }
+}
+{
+  "accepted": true,
+  "command": "close-context"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "testSubtype",
+    "format": "code"
+  }
+}
+{
+  "accepted": true,
+  "command": "close-context"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "close-judgement"
+}

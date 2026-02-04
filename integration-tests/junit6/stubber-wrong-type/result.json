@@ -1,0 +1,81 @@
+{
+  "command": "start-judgement"
+}
+{
+  "command": "start-tab",
+  "hidden": true,
+  "title": "Compiler"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "start-tab",
+  "hidden": false,
+  "permission": "student",
+  "title": "Test"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "testIntArrayList()",
+    "format": "code"
+  }
+}
+{
+  "command": "escalate-status",
+  "status": {
+    "enum": "wrong",
+    "human": "Wrong"
+  }
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "Missing method: void intArrayList(ArrayList).",
+    "format": "code"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "testIntArray()",
+    "format": "code"
+  }
+}
+{
+  "command": "escalate-status",
+  "status": {
+    "enum": "wrong",
+    "human": "Wrong"
+  }
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "Missing method: void intArray(int[]).",
+    "format": "code"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "close-judgement"
+}

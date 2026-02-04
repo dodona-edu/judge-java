@@ -1,20 +1,23 @@
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.Before;
+
 
 import dodona.reflection.AssertionStubber;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class StubberTest {
 
     private StubberInterface solution;
 
-    @Before public void initialize() {
+    @BeforeEach
+    public void initialize() {
         solution = new AssertionStubber().stub(StubberInterface.class, Stubber.class);
     }
         
     @Test
     public void test() {
-        Assert.assertTrue(solution.isStubbed());
+        Assertions.assertTrue(solution.isStubbed());
     }
 
 }

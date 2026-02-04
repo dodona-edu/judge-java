@@ -1,15 +1,20 @@
 #!/usr/bin/env bash
 set -e
+shopt -s globstar
 
 # Default values
 target_dir="integration-tests"
 overwrite=0
+err_out="/dev/null"
 
 # Parse arguments
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --overwrite)
             overwrite=1
+            ;;
+        -v|--verbose)
+            err_out="/dev/stderr"
             ;;
         *)
             target_dir="$1"
@@ -26,7 +31,7 @@ minor_change=0
 major_change=0
 
 # Find all config.json files in target directory
-for config in "$target_dir"/**/config.json; do
+for config in $target_dir/**/config.json; do
     test_dir="$(dirname "$config")"
     
     # Extract config values
@@ -69,7 +74,7 @@ for config in "$target_dir"/**/config.json; do
           , "memory_limit": 1000000000
           , "source": "'"$judge/$source"'"
           }' \
-          | (timeout -k 10s 60s "$judge/run" 2> /dev/null) \
+          | (timeout -k 10s 60s "$judge/run" 2> "$err_out") \
           | jq --sort-keys 'if(.command == "append-message")
                 then .message.description |= gsub("\n at [^\n]+\\([^)]+\\)"; "")
                 else .
@@ -80,30 +85,30 @@ for config in "$target_dir"/**/config.json; do
     rm -r "$workdir"
 
     # Count accepted and failed in output
-    accepted_output="$(echo "$output" | jq -s 'map(select(.accepted == true)) | length')"
-    failed_output="$(echo "$output" | jq -s 'map(select(.accepted == false)) | length')"
-    echo -en "$accepted_output accepted, $failed_output failed\t"
+    accepted_actual="$(echo "$output" | jq -s 'map(select(.accepted == true)) | length')"
+    failed_actual="$(echo "$output" | jq -s 'map(select(.accepted == false)) | length')"
+    echo -en "$accepted_actual accepted, $failed_actual failed\t"
 
 
 
     if [ -f "$result_file" ]; then
         # Count accepted and failed in result
-        accepted_result="$(jq -s 'map(select(.accepted == true)) | length' "$result_file" )"
-        failed_result="$(jq -s 'map(select(.accepted == true)) | length' "$result_file" )"
-
+        accepted_expected="$(jq -s 'map(select(.accepted == true)) | length' "$result_file" )"
+        failed_expected="$(jq -s 'map(select(.accepted == false)) | length' "$result_file" )"
 
         # First check if files are exact using diff, then check if they differ except '.description', then check they differ in accepted or failed
-        if diff "$result_file" <(echo "$output") > /dev/null; then
+
+        if diff -U3 "$result_file" <(echo "$output") > "$err_out"; then
             echo "[EXACT MATCH]"
             exact_match=$((exact_match + 1))
-        elif diff <(jq "del(.description)" "$result_file") <(echo "$output" | jq "del(.description)") > /dev/null; then
+        elif diff -U3 <(jq "del(.description)" "$result_file") <(echo "$output" | jq "del(.description)") > /dev/null; then
             echo "[DESCRIPTION CHANGED]"
             description_changed=$((description_changed + 1))
-        elif [ "$accepted_output" -eq "$accepted_result" ] && [ "$failed_output" -eq "$failed_result" ]; then
+        elif [ "$accepted_actual" -eq "$accepted_expected" ] && [ "$failed_actual" -eq "$failed_expected" ]; then
             echo "[MINOR CHANGE] (accepted/failed unchanged)"
             minor_change=$((minor_change + 1))
         else
-            echo "[MAJOR CHANGE] (accepted/failed changed, was $accepted_result/$failed_result)"
+            echo "[MAJOR CHANGE] (accepted/failed changed, expected $accepted_expected/$failed_expected, actual $accepted_actual/$failed_actual)"
             major_change=$((major_change + 1))
         fi
     fi

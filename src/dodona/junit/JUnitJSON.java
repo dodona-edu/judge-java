@@ -1,62 +1,38 @@
 package dodona.junit;
 
-import java.util.Optional;
+import dodona.feedback.AppendMessage;
+import dodona.feedback.Message;
+import dodona.json.Json;
+import org.junit.platform.launcher.Launcher;
+import org.junit.platform.launcher.LauncherDiscoveryRequest;
+import org.junit.platform.launcher.core.LauncherFactory;
+import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
+import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
+
 import java.util.Locale;
-import java.security.Permission;
 import static java.lang.Thread.currentThread;
 
-import org.junit.runner.JUnitCore;
-
-import dodona.feedback.Message;
-import dodona.feedback.AppendMessage;
-import dodona.json.Json;
-
 public class JUnitJSON {
-    public static final String PROPERTY_LANGUAGE = "dodona.language";
     public static final String PROPERTY_OUTPUT_CUTOFF = "dodona.output_cutoff";
 
     public static void main(String... args) {
         Class<?> testSuite = null;
         try {
             testSuite = Class.forName("TestSuite", true, currentThread().getContextClassLoader());
-        } catch(ClassNotFoundException e) {
-            System.out.println(new Json().asString(new AppendMessage(Message.internalError("TestSuite class not found."))));
+        } catch (ClassNotFoundException e) {
+            System.out.println(
+                    new Json().asString(new AppendMessage(Message.internalError("TestSuite class not found."))));
             System.exit(1);
         }
 
-        Locale.setDefault(Locale.Category.FORMAT, new Locale("en_US_POSIX"));
+        Locale.setDefault(Locale.Category.FORMAT, Locale.forLanguageTag("en_US_POSIX"));
 
-        NoExitSecurityManager sm = new NoExitSecurityManager(System.getSecurityManager());
-        System.setSecurityManager(sm);
-        JUnitCore core = new JUnitCore();
-        core.addListener(new JSONListener());
-        core.run(new Class<?>[]{ testSuite });
-        System.setSecurityManager(sm.getPrevious());
+        LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
+                .selectors(selectClass(testSuite))
+                .build();
+
+        Launcher launcher = LauncherFactory.create();
+        launcher.registerTestExecutionListeners(new JSONListener());
+        launcher.execute(request);
     }
-
-    private static class NoExitSecurityManager extends SecurityManager {
-        private Optional<SecurityManager> previous;
-
-        public NoExitSecurityManager(SecurityManager previous) {
-            this.previous = Optional.ofNullable(previous);
-        }
-
-        @Override public void checkPermission(Permission perm) {
-            previous.ifPresent(sm -> sm.checkPermission(perm));
-        }
-
-        @Override public void checkPermission(Permission perm, Object context) {
-            previous.ifPresent(sm -> sm.checkPermission(perm, context));
-        }
-
-        @Override public void checkExit(int status) {
-            super.checkExit(status);
-            throw new ExitException(status);
-        }
-
-        public SecurityManager getPrevious() {
-            return previous.orElse(null);
-        }
-    }
-
 }
