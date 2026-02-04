@@ -8,10 +8,13 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-public class MessageWriter extends PrintWriter implements TestRule {
+public class MessageWriter extends PrintWriter implements TestRule, TestExecutionExceptionHandler {
 
     private Permission permission;
     private Format format;
@@ -43,6 +46,11 @@ public class MessageWriter extends PrintWriter implements TestRule {
                 }
             }
         };
+    }
+
+    @Override
+    public void handleTestExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
+        throw new AnnotatedThrowable(throwable, new Message(format, writer.toString(), permission));
     }
 
 }

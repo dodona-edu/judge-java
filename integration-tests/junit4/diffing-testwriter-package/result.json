@@ -1,0 +1,52 @@
+{
+  "command": "start-judgement"
+}
+{
+  "command": "start-tab",
+  "hidden": true,
+  "title": "Compiler"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "start-tab",
+  "hidden": false,
+  "permission": "student",
+  "title": "Test"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "test",
+    "format": "code"
+  }
+}
+{
+  "command": "escalate-status",
+  "status": {
+    "enum": "wrong",
+    "human": "Wrong"
+  }
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "Inaccessible method: String hello(). Method should have a \"public\" modifier.",
+    "format": "code"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "close-judgement"
+}

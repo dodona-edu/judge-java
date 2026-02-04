@@ -1,8 +1,8 @@
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.Before;
+
 
 import dodona.reflection.AssertionStubber;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestWriterTest {
 
@@ -10,7 +10,8 @@ public class TestWriterTest {
 
     private TestWriterInterface solution;
 
-    @Before public void initialize() {
+    @BeforeEach
+    public void initialize() {
         solution = new AssertionStubber().stub(TestWriterInterface.class, TestWriter.class);
     }
         

@@ -98,10 +98,10 @@ for config in $target_dir/**/config.json; do
 
         # First check if files are exact using diff, then check if they differ except '.description', then check they differ in accepted or failed
 
-        if diff -c "$result_file" <(echo "$output") > "$err_out"; then
+        if diff -U3 "$result_file" <(echo "$output") > "$err_out"; then
             echo "[EXACT MATCH]"
             exact_match=$((exact_match + 1))
-        elif diff -c <(jq "del(.description)" "$result_file") <(echo "$output" | jq "del(.description)") > /dev/null; then
+        elif diff -U3 <(jq "del(.description)" "$result_file") <(echo "$output" | jq "del(.description)") > /dev/null; then
             echo "[DESCRIPTION CHANGED]"
             description_changed=$((description_changed + 1))
         elif [ "$accepted_actual" -eq "$accepted_expected" ] && [ "$failed_actual" -eq "$failed_expected" ]; then
