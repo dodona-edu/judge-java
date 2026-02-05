@@ -13,7 +13,7 @@
   "command": "start-tab",
   "hidden": false,
   "permission": "student",
-  "title": "Test"
+  "title": "SimpleTest"
 }
 {
   "command": "start-context",

@@ -82,8 +82,7 @@ public class JSONListener implements TestExecutionListener {
     }
 
     public void beforeTab(TestIdentifier testIdentifier) {
-        final String title = getTabTitle(testIdentifier)
-                .orElse(TabTitle.DEFAULT);
+        final String title = getTabTitle(testIdentifier);
         final Permission permission = getTabPermission(testIdentifier)
                 .orElse(TabPermission.DEFAULT);
         write(new StartTab(title, permission));
@@ -205,8 +204,10 @@ public class JSONListener implements TestExecutionListener {
                 .orElse(testIdentifier.getDisplayName());
     }
 
-    private Optional<String> getTabTitle(TestIdentifier testIdentifier) {
-        return getAnnotation(testIdentifier, TabTitle.class).map(TabTitle::value);
+    private String getTabTitle(TestIdentifier testIdentifier) {
+        return getAnnotation(testIdentifier, TabTitle.class)
+                .map(TabTitle::value)
+                .orElse(testIdentifier.getDisplayName());
     }
 
     private Optional<Permission> getTabPermission(TestIdentifier testIdentifier) {

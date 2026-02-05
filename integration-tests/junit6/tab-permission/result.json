@@ -13,7 +13,7 @@
   "command": "start-tab",
   "hidden": false,
   "permission": "staff",
-  "title": "Test"
+  "title": "TabPermissionTest"
 }
 {
   "command": "start-context",
