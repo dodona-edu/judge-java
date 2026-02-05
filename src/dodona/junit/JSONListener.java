@@ -21,6 +21,7 @@ import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 import org.junit.runners.model.TestTimedOutException;
 
+import javax.swing.text.html.Option;
 import java.io.PrintStream;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -179,23 +180,27 @@ public class JSONListener implements TestExecutionListener {
         write(new StartTestcase(Message.plain("Unknown Error")));
     }
 
+    private Optional<TestSource> getParentSource(TestIdentifier testIdentifier) {
+        Optional<TestIdentifier> parent = testPlan.getParent(testIdentifier);
+        // Sometimes there are intermediate parents that have an empty source,
+        // so the direct parent of an identifier is not always a "real" parent
+        while (parent.isPresent() && parent.get().getSource().isEmpty()) {
+            parent = testPlan.getParent(parent.get());
+        }
+        return parent.flatMap(TestIdentifier::getSource);
+    }
+
     // Helper to determine if an ID is a "Tab" (Test Class)
     private boolean isTab(TestIdentifier testIdentifier) {
-        if (!testIdentifier.isContainer() || testPlan == null || testIdentifier.getSource().isEmpty()) {
+        // Filter out top-level and "empty" identifiers (such as the empty Vintage runner)
+        if (testPlan == null || testIdentifier.getSource().isEmpty()) {
             return false;
         }
 
-        String parent = testIdentifier.getParentId().orElse("");
-        if (!parent.contains("TestSuite")) {
-            return false;
-        }
-
-        // Identify tabs more robustly by checking the uniqueId segment type:
-        // - regular JUnit 5 classes use "[class:...]"
-        // - JUnit 4 (vintage) runners use "[runner:...]"
-        // Suites use "[suite:...]" and must NOT be tabs.
-        String uid = testIdentifier.getUniqueId();
-        return (uid.contains("[class:") || uid.contains("[runner:"));
+        // Direct children of the "TestSuite" class are our test classes which should become tabs
+        return getParentSource(testIdentifier)
+                .map(ps -> ps instanceof ClassSource && ((ClassSource) ps).getClassName().equals("TestSuite"))
+                .orElse(false);
     }
 
     private String getDescription(TestIdentifier testIdentifier) {
