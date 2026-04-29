@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
 
 public class JSONListener implements TestExecutionListener {
     private static final int STACKSIZE = 50;
@@ -146,7 +147,7 @@ public class JSONListener implements TestExecutionListener {
         }
         write(new StartTestcase(Message.code(deepest.toString())));
 
-        if (thrown instanceof TestTimedOutException) {
+        if (thrown instanceof TestTimedOutException || thrown instanceof TimeoutException) {
             write(new EscalateStatus(Status.TIME_LIMIT_EXCEEDED, "Time limit exceeded"));
         } else {
             write(new EscalateStatus(Status.RUNTIME_ERROR, "Runtime error"));
