@@ -13,7 +13,7 @@ jobs:
     - name: Evaluate sample exercises on the judge image
       run: |
         docker run --rm \
-          --volume "$PWD":/judge \
+          --volume "$PWD":/judge:ro \
           --workdir /judge \
           dodona-java-test \
           ./integration-tests/run
