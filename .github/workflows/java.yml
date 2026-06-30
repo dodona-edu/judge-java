@@ -7,13 +7,9 @@ jobs:
   example-exercises:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-
-    # Run the integration tests on the actual judge image (see
-    # .github/test.dockerfile), so CI uses the same Java runtime as production.
+    - uses: actions/checkout@v7
     - name: Build the judge test image
       run: docker build --tag dodona-java-test --file .github/test.dockerfile .
-
     - name: Evaluate sample exercises on the judge image
       run: |
         docker run --rm \
