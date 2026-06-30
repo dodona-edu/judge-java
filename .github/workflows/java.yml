@@ -9,18 +9,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # Run the integration tests on the actual judge image, so CI uses the same
-    # Java runtime as production. The image is a minimal Alpine that only ships
-    # what the judge needs at runtime, so we layer on the test harness's extra
-    # dependency (bash) here rather than bloating the published image.
-    - name: Build the judge image with the test harness's dependencies
-      run: |
-        docker build --tag dodona-java-test - <<'DOCKERFILE'
-        FROM ghcr.io/dodona-edu/dodona-java:latest
-        USER root
-        RUN apk add --no-cache bash
-        USER runner
-        DOCKERFILE
+    # Run the integration tests on the actual judge image (see
+    # .github/test.dockerfile), so CI uses the same Java runtime as production.
+    - name: Build the judge test image
+      run: docker build --tag dodona-java-test --file .github/test.dockerfile .
 
     - name: Evaluate sample exercises on the judge image
       run: |
