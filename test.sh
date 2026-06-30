@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 # Test this Judge by running the integration tests in the docker image
-image="dodona/dodona-java21:latest"
+image="ghcr.io/dodona-edu/dodona-java:latest"
 
 docker run \
     --mount type=bind,source=$PWD,destination=/home/runner/workdir,readonly \
