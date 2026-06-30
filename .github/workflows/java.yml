@@ -6,12 +6,26 @@ on:
 jobs:
   example-exercises:
     runs-on: ubuntu-latest
-    container:
-      image: eclipse-temurin:25
-
     steps:
-    - uses: actions/checkout@v1
-    - name: Install dependencies
-      run: apt update && apt install -y jq
-    - name: Evaluate sample exercises
-      run: ./integration-tests/run
+    - uses: actions/checkout@v4
+
+    # Run the integration tests on the actual judge image, so CI uses the same
+    # Java runtime as production. The image is a minimal Alpine that only ships
+    # what the judge needs at runtime, so we layer on the test harness's extra
+    # dependency (bash) here rather than bloating the published image.
+    - name: Build the judge image with the test harness's dependencies
+      run: |
+        docker build --tag dodona-java-test - <<'DOCKERFILE'
+        FROM ghcr.io/dodona-edu/dodona-java:latest
+        USER root
+        RUN apk add --no-cache bash
+        USER runner
+        DOCKERFILE
+
+    - name: Evaluate sample exercises on the judge image
+      run: |
+        docker run --rm \
+          --volume "$PWD":/judge \
+          --workdir /judge \
+          dodona-java-test \
+          ./integration-tests/run
