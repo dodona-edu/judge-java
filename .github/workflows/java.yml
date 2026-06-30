@@ -7,7 +7,7 @@ jobs:
   example-exercises:
     runs-on: ubuntu-latest
     container:
-      image: eclipse-temurin:21
+      image: eclipse-temurin:25
 
     steps:
     - uses: actions/checkout@v1
