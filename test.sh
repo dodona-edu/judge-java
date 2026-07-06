@@ -1,9 +1,9 @@
 #!/usr/bin/env sh
 
-# Test this Judge by running the integration tests in the docker image
-image="dodona/dodona-java21:latest"
-
-docker run \
-    --mount type=bind,source=$PWD,destination=/home/runner/workdir,readonly \
-    "$image" \
-    -- ./integration-tests/run -v
+# Test this judge by running the integration tests in the judge image, same as CI.
+docker build --tag dodona-java-test --file .github/test.dockerfile .
+docker run --rm \
+    --volume "$PWD":/judge:ro \
+    --workdir /judge \
+    dodona-java-test \
+    ./integration-tests/run -v

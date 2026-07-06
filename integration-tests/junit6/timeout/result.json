@@ -32,8 +32,8 @@
 {
   "command": "escalate-status",
   "status": {
-    "enum": "runtime error",
-    "human": "Runtime error"
+    "enum": "time limit exceeded",
+    "human": "Time limit exceeded"
   }
 }
 {

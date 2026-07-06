@@ -6,12 +6,14 @@ on:
 jobs:
   example-exercises:
     runs-on: ubuntu-latest
-    container:
-      image: eclipse-temurin:21
-
     steps:
-    - uses: actions/checkout@v1
-    - name: Install dependencies
-      run: apt update && apt install -y jq
-    - name: Evaluate sample exercises
-      run: ./integration-tests/run
+    - uses: actions/checkout@v7
+    - name: Build the judge test image
+      run: docker build --tag dodona-java-test --file .github/test.dockerfile .
+    - name: Evaluate sample exercises on the judge image
+      run: |
+        docker run --rm \
+          --volume "$PWD":/judge:ro \
+          --workdir /judge \
+          dodona-java-test \
+          ./integration-tests/run
