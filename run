@@ -243,7 +243,7 @@ fi
 
 # Compiling judge into "build" and getting a jar in the workdir
 find "$judge/src" -name '*.java' \
-    | xargs javac -classpath "$judge/lib/*:/tmp/build" -d /tmp/build -sourcepath "$judge/src"
+    | xargs javac -J-XX:TieredStopAtLevel=1 -classpath "$judge/lib/*:/tmp/build" -d /tmp/build -sourcepath "$judge/src"
 jar -cfm "judge.jar" "$judge/src/META-INF/MANIFEST.MF" -C /tmp/build .
 
 # Compiling the tests
