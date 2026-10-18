@@ -5,7 +5,7 @@ import static org.junit.Assert.fail;
 
 public class SleepyTest {
 
-    @Test(timeout = 1)
+    @Test(timeout = 500)
     public void test() throws Exception {
         new Sleepy().sleep();
         fail();

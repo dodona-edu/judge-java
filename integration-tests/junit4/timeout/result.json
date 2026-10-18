@@ -25,7 +25,7 @@
 {
   "command": "start-testcase",
   "description": {
-    "description": "org.junit.runners.model.TestTimedOutException: test timed out after 1 milliseconds",
+    "description": "org.junit.runners.model.TestTimedOutException: test timed out after 500 milliseconds",
     "format": "code"
   }
 }
@@ -39,7 +39,7 @@
 {
   "command": "append-message",
   "message": {
-    "description": "Caused by org.junit.runners.model.TestTimedOutException: test timed out after 1 milliseconds",
+    "description": "Caused by org.junit.runners.model.TestTimedOutException: test timed out after 500 milliseconds",
     "format": "code"
   }
 }
