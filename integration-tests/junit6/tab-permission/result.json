@@ -12,7 +12,7 @@
 {
   "command": "start-tab",
   "hidden": false,
-  "permission": "staff",
+  "permission": "educator",
   "title": "TabPermissionTest"
 }
 {

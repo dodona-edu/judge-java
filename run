@@ -65,11 +65,11 @@ explain_compilation_warning() {
     esac
 }
 
-parse_compilation_error_staff() {
+parse_compilation_error_educator() {
     # arg1: 1 compiler log
     dodona start-context
     dodona start-testcase -f plain -d "Compilation error"
-    dodona append-message -f code -p staff -d "$1"
+    dodona append-message -f code -p educator -d "$1"
     dodona close-testcase -A
     dodona close-context
 }
@@ -137,7 +137,7 @@ parse_compilation_errors() {
                 if [ "$1" = 'student' ]; then
                     parse_compilation_error_student "$compile_err" "$annotate" </dev/zero
                 else
-                    parse_compilation_error_staff "$compile_err" </dev/zero
+                    parse_compilation_error_educator "$compile_err" </dev/zero
                 fi
             fi
             compile_err="$line"
@@ -154,7 +154,7 @@ parse_compilation_errors() {
     if [ "$1" = 'student' ]; then
         parse_compilation_error_student "$compile_err" "$annotate" </dev/zero
     else
-        parse_compilation_error_staff "$compile_err" </dev/zero
+        parse_compilation_error_educator "$compile_err" </dev/zero
     fi
 }
 
@@ -209,7 +209,7 @@ worklibs="$([ -d "$workdir" ] && find "$workdir" -name '*.jar' | xargs echo | tr
 
 # Compiling the workdir given code
 if ! find . -name '*.java' | xargs --no-run-if-empty javac -cp ".:${worklibs}:${testlibs}" -d . -sourcepath . > "$compilation" 2>&1; then
-    compilation_failed "$compilation" "Something went wrong while compiling the base code for this exercise. Contact your teacher." "Error in base code" 'staff' 0
+    compilation_failed "$compilation" "Something went wrong while compiling the base code for this exercise. Contact your teacher." "Error in base code" 'educator' 0
 fi
 
 # Create the Input.java class, containing the submitted code
