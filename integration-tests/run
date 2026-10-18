@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
+#!/bin/sh
 set -e
-shopt -s globstar
 
 # Default values
 target_dir="integration-tests"
@@ -30,15 +29,20 @@ description_changed=0
 minor_change=0
 major_change=0
 
+scratch="$(mktemp -d)"
+trap 'rm -rf "$scratch"' EXIT
+
 # Find all config.json files in target directory
-for config in $target_dir/**/config.json; do
+find "$target_dir" -name config.json | sort > "$scratch/configs"
+
+while IFS= read -r config; do
     test_dir="$(dirname "$config")"
-    
+
     # Extract config values
     filename="$(jq -r '.evaluation.filename // .filename' "$config")"
     allow_compilation_warnings="$(jq -r '.allow_compilation_warnings == true' "$config")"
     lang="$(jq -r '.natural_language // "en"' "$config")"
-    
+
     # Determine submission source and result file
     submission_source="$test_dir/submission.java"
     config_source="$test_dir/solution/$filename"
@@ -50,11 +54,11 @@ for config in $target_dir/**/config.json; do
         echo "Warning: No submission.java or $filename found in $test_dir. Skipping." >&2
         continue
     fi
-    
+
     result_file="$test_dir/result.json"
 
-    echo -en "Testing ${test_dir} ...\t"
-    
+    printf 'Testing %s ...\t' "$test_dir"
+
     workdir="$(mktemp -d)"
     cd "$workdir"
 
@@ -78,18 +82,18 @@ for config in $target_dir/**/config.json; do
           | jq --sort-keys 'if(.command == "append-message")
                 then .message.description |= gsub("\n at [^\n]+\\([^)]+\\)"; "")
                 else .
-            end' 
+            end'
     )
 
     cd "$judge"
     rm -r "$workdir"
 
+    printf '%s\n' "$output" > "$scratch/actual"
+
     # Count accepted and failed in output
-    accepted_actual="$(echo "$output" | jq -s 'map(select(.accepted == true)) | length')"
-    failed_actual="$(echo "$output" | jq -s 'map(select(.accepted == false)) | length')"
-    echo -en "$accepted_actual accepted, $failed_actual failed\t"
-
-
+    accepted_actual="$(jq -s 'map(select(.accepted == true)) | length' "$scratch/actual")"
+    failed_actual="$(jq -s 'map(select(.accepted == false)) | length' "$scratch/actual")"
+    printf '%s accepted, %s failed\t' "$accepted_actual" "$failed_actual"
 
     if [ -f "$result_file" ]; then
         # Count accepted and failed in result
@@ -98,10 +102,12 @@ for config in $target_dir/**/config.json; do
 
         # First check if files are exact using diff, then check if they differ except '.description', then check they differ in accepted or failed
 
-        if diff -U3 "$result_file" <(echo "$output") > "$err_out"; then
+        if diff -U3 "$result_file" "$scratch/actual" > "$err_out"; then
             echo "[EXACT MATCH]"
             exact_match=$((exact_match + 1))
-        elif diff -U3 <(jq "del(.description)" "$result_file") <(echo "$output" | jq "del(.description)") > /dev/null; then
+        elif jq "del(.description)" "$result_file" > "$scratch/expected-nodesc" \
+            && jq "del(.description)" "$scratch/actual" > "$scratch/actual-nodesc" \
+            && diff -U3 "$scratch/expected-nodesc" "$scratch/actual-nodesc" > /dev/null; then
             echo "[DESCRIPTION CHANGED]"
             description_changed=$((description_changed + 1))
         elif [ "$accepted_actual" -eq "$accepted_expected" ] && [ "$failed_actual" -eq "$failed_expected" ]; then
@@ -115,10 +121,10 @@ for config in $target_dir/**/config.json; do
 
     # Check or overwrite results
     if [ "$overwrite" -eq 1 ]; then
-        echo "$output" > "$result_file"
+        cp "$scratch/actual" "$result_file"
         echo "[OVERWRITE]"
     fi
-done
+done < "$scratch/configs"
 
 # Report results
 echo
