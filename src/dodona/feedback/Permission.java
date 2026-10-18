@@ -2,6 +2,8 @@ package dodona.feedback;
 
 public enum Permission {
     STUDENT, /* visible for everyone */
-    STAFF,   /* visible for staff members */
-    ZEUS;    /* visible only for almighty Zeus */
+    EDUCATOR, /* visible for educators */
+    @Deprecated
+    STAFF,    /* use EDUCATOR; kept so existing exercise tests still compile */
+    ZEUS;     /* visible only for almighty Zeus */
 }

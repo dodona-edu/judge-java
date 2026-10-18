@@ -21,11 +21,11 @@ public class Message {
     }
 
     public static Message staff(String content) {
-        return new Message(Format.PLAIN, content, Permission.STAFF);
+        return new Message(Format.PLAIN, content, Permission.EDUCATOR);
     }
 
     public static Message internalError(String content) {
-        return new Message(Format.CODE, content, Permission.STAFF);
+        return new Message(Format.CODE, content, Permission.EDUCATOR);
     }
 
 }

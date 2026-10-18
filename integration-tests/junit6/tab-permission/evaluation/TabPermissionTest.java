@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import dodona.junit.TabPermission;
 import dodona.feedback.Permission;
 
-@TabPermission(Permission.STAFF)
+@TabPermission(Permission.EDUCATOR)
 public class TabPermissionTest {
     @Test
     public void testMethod() {
