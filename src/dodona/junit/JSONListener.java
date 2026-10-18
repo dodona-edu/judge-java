@@ -118,6 +118,7 @@ public class JSONListener implements TestExecutionListener {
 
         switch (thrown) {
             case TestCarryingThrowable tct -> handleTestCarryingThrowable(tct);
+            case SystemExitError se -> handleSystemExit(se);
             case AssertionError ae -> handleAssertionError(ae);
             case Throwable t -> handleException(t);
             case null -> handleUnknownError();
@@ -138,6 +139,11 @@ public class JSONListener implements TestExecutionListener {
     private void handleAssertionError(AssertionError thrown) {
         write(new EscalateStatus(Status.WRONG, "Wrong"));
         write(new StartTestcase(Message.code(thrown.getMessage() == null ? "" : thrown.getMessage())));
+    }
+
+    private void handleSystemExit(SystemExitError thrown) {
+        write(new StartTestcase(Message.plain(thrown.getMessage())));
+        write(new EscalateStatus(Status.RUNTIME_ERROR, "Runtime error"));
     }
 
     private void handleException(Throwable thrown) {
