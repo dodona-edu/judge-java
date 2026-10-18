@@ -9,7 +9,7 @@ public class Message {
     public Message(Format format, String content, Permission permission) {
         this.format = format;
         this.description = content;
-        this.permission = null;
+        this.permission = permission == Permission.STUDENT ? null : permission;
     }
 
     public static Message plain(String content) {
