@@ -6,9 +6,8 @@ set -e
 config="$(mktemp)"         # configuration
 compilation="$(mktemp)"    # output of compilation
 importclass="$(mktemp -d)" # to check imports
-mkdir "/tmp/build"         # compilation directory
 
-trap "rm -rf '$config' '$compilation' '$importclass' '/tmp/build'" EXIT
+trap "rm -rf '$config' '$compilation' '$importclass'" EXIT
 
 # Saving the configuration from stdin
 cat > "$config"
@@ -241,13 +240,8 @@ if ! javac -cp . -d "$importclass" "$importclass/Import.java" >/dev/null 2>&1; t
     exit 0
 fi
 
-# Compiling judge into "build" and getting a jar in the workdir
-find "$judge/src" -name '*.java' \
-    | xargs javac -J-XX:TieredStopAtLevel=1 -classpath "$judge/lib/*:/tmp/build" -d /tmp/build -sourcepath "$judge/src"
-jar -cfm "judge.jar" "$judge/src/META-INF/MANIFEST.MF" -C /tmp/build .
-
 # Compiling the tests
-if ! find "$resources" -name '*.java' | xargs javac -Xdiags:verbose -cp ".:${resources}:${worklibs}:${testlibs}:judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
+if ! find "$resources" -name '*.java' | xargs javac -Xdiags:verbose -cp ".:${resources}:${worklibs}:${testlibs}:$judge/dist/judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
     compilation_failed "$compilation" "Something went wrong while compiling the tests for this exercise." "Error in the tests" 'student' 0
 fi
 
@@ -255,6 +249,6 @@ fi
 dodona close-tab
 
 # Running the tests
-java -Xss32M -Xmx"${memory_limit}k" -javaagent:judge.jar -cp ".:${worklibs}:${testlibs}:judge.jar:${resources}/properties" -Djunit.vintage.discovery.issue.reporting.enabled=false -Ddodona.language="${natural_language}" -Ddodona.output_cutoff="${generated_output_cutoff}" dodona.junit.JUnitJSON
+java -Xss32M -Xmx"${memory_limit}k" -javaagent:"$judge/dist/judge.jar" -cp ".:${worklibs}:${testlibs}:$judge/dist/judge.jar:${resources}/properties" -Djunit.vintage.discovery.issue.reporting.enabled=false -Ddodona.language="${natural_language}" -Ddodona.output_cutoff="${generated_output_cutoff}" dodona.junit.JUnitJSON
 
 dodona close-judgement

@@ -48,7 +48,7 @@ When running the judge, the code is compiled in the order given below. This mean
 
 - The code in `workdir` is compiled. This directory should contain code for everyone, e.g. classes the student can use or interfaces they should implement. It can also contain exercise-specific jar-files.
 - The code submitted by the student is compiled.
-- The judge is compiled.
+- The judge's own classes are added to the classpath, from the prebuilt `dist/judge.jar`.
 - The code in `evaluation` is compiled. This directory should contain the JUnit tests. It can also contain other classes and jar-files which will be included in the class path.
 
 The test classpath contains the jars in [lib](lib) (gson, junit-platform-console-standalone, random and system-rules) and the jars in `evaluation` and `workdir`. The junit-platform-console-standalone jar bundles the Jupiter, Vintage (JUnit 4) and Suite engines.
@@ -159,7 +159,7 @@ Since the tests are mostly just jUnit tests, IntelliJ and other IDE's provide su
 
 Per exercise, create a new project. The `config.json` file should be in the project root. Mark (or create) the `workdir`, `evaluation` and `solution` directories as "sources root". Add JUnit Jupiter (version 6) as a dependency of the project, or JUnit 4 if you write JUnit 4 tests.
 
-If your exercises use some Dodona-specific features, such as the `TabTitle` or the `AssertionStubber`, add the Judge as a dependency. Opening this repository as an IntelliJ project should allow you to create a JAR.
+If your exercises use some Dodona-specific features, such as the `TabTitle` or the `AssertionStubber`, add the judge as a dependency: `dist/judge.jar` in this repository.
 
 ## Developing the judge
 
@@ -170,3 +170,5 @@ While developing, you can use `./test.sh` in the root of this repository to vali
 You can also use `./integration-tests/run <path-to-repo>` to run the same checks on an exercise repository, which is useful to validate a larger set of exercises. Give the path relative to the root of this repository. This runs the judge directly, so it needs the judge's environment (a Linux machine with a JDK and jq); `./test.sh` only mounts this repository.
 
 With `--overwrite`, you can overwrite previous `result.json` files with the current output, and with `-v` you can check for judge error output and view the exact changes when output differs. `./test.sh` mounts the repository read-only, so use `./integration-tests/run --overwrite` directly for that.
+
+The judge runs from the prebuilt `dist/judge.jar`, not from `src/`: Dodona has no build step. After changing anything in `src/`, run `./devel/build-jar.sh` (Docker; it builds the jar reproducibly in the judge image) and commit `dist/judge.jar` along with your change. CI fails when the committed jar doesn't match a fresh build of `src/`; `./devel/build-jar.sh --check` runs the same check locally.

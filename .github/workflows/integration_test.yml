@@ -11,3 +11,12 @@ jobs:
     uses: ./.github/workflows/e2e.yml
     with:
       ref: ${{ github.sha }}
+
+  judge-jar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Check dist/judge.jar matches src/
+        run: ./devel/build-jar.sh --check
