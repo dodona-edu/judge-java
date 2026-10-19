@@ -244,7 +244,7 @@ fi
 # Compiling judge into "build" and getting a jar in the workdir
 find "$judge/src" -name '*.java' \
     | xargs javac -classpath "$judge/lib/*:/tmp/build" -d /tmp/build -sourcepath "$judge/src"
-jar -cf "judge.jar" -C /tmp/build .
+jar -cfm "judge.jar" "$judge/src/META-INF/MANIFEST.MF" -C /tmp/build .
 
 # Compiling the tests
 if ! find "$resources" -name '*.java' | xargs javac -Xdiags:verbose -cp ".:${resources}:${worklibs}:${testlibs}:judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
@@ -255,6 +255,6 @@ fi
 dodona close-tab
 
 # Running the tests
-java -Xss32M -Xmx"${memory_limit}k" -cp ".:${worklibs}:${testlibs}:judge.jar:${resources}/properties" -Djunit.vintage.discovery.issue.reporting.enabled=false -Ddodona.language="${natural_language}" -Ddodona.output_cutoff="${generated_output_cutoff}" dodona.junit.JUnitJSON
+java -Xss32M -Xmx"${memory_limit}k" -javaagent:judge.jar -cp ".:${worklibs}:${testlibs}:judge.jar:${resources}/properties" -Djunit.vintage.discovery.issue.reporting.enabled=false -Ddodona.language="${natural_language}" -Ddodona.output_cutoff="${generated_output_cutoff}" dodona.junit.JUnitJSON
 
 dodona close-judgement

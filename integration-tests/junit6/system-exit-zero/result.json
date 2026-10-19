@@ -1,0 +1,63 @@
+{
+  "command": "start-judgement"
+}
+{
+  "command": "start-tab",
+  "hidden": true,
+  "title": "Compiler"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "start-tab",
+  "hidden": false,
+  "permission": "student",
+  "title": "Calculator"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "square(3)",
+    "format": "code"
+  }
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "Your code called System.exit(0).",
+    "format": "plain"
+  }
+}
+{
+  "command": "escalate-status",
+  "status": {
+    "enum": "runtime error",
+    "human": "Runtime error"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "twice(3)",
+    "format": "code"
+  }
+}
+{
+  "accepted": true,
+  "command": "close-context"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "close-judgement"
+}
