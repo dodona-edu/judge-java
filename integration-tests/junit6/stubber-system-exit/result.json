@@ -1,0 +1,128 @@
+{
+  "command": "start-judgement"
+}
+{
+  "command": "start-tab",
+  "hidden": true,
+  "title": "Compiler"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "start-tab",
+  "hidden": false,
+  "permission": "student",
+  "title": "Calculator"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "square(3) exits with status 3",
+    "format": "code"
+  }
+}
+{
+  "accepted": true,
+  "command": "close-context"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "square(3) without an expectation",
+    "format": "code"
+  }
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "Your code called System.exit(3).",
+    "format": "plain"
+  }
+}
+{
+  "command": "escalate-status",
+  "status": {
+    "enum": "runtime error",
+    "human": "Runtime error"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "cube(3) throws an exception",
+    "format": "code"
+  }
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "java.lang.IllegalStateException: not implemented",
+    "format": "code"
+  }
+}
+{
+  "command": "escalate-status",
+  "status": {
+    "enum": "runtime error",
+    "human": "Runtime error"
+  }
+}
+{
+  "command": "append-message",
+  "message": {
+    "description": "Caused by java.lang.IllegalStateException: not implemented",
+    "format": "code"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "twice(3) exits",
+    "format": "code"
+  }
+}
+{
+  "command": "escalate-status",
+  "status": {
+    "enum": "wrong",
+    "human": "Wrong"
+  }
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "System.exit has not been called.",
+    "format": "code"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "close-judgement"
+}

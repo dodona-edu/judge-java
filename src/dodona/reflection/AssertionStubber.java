@@ -91,7 +91,11 @@ public class AssertionStubber {
             if(!Modifier.isPublic(solutionClass.getModifiers())) inaccessibleClass(solutionClass);
             if(!Modifier.isPublic(solutionMethod.get().getModifiers())) inaccessibleMethod(method);
 
-            return solutionMethod.get().invoke(solutionInstance, args);
+            try {
+                return solutionMethod.get().invoke(solutionInstance, args);
+            } catch(InvocationTargetException e) {
+                throw e.getCause();
+            }
         }
 
     }
