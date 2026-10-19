@@ -25,7 +25,7 @@
 {
   "command": "start-testcase",
   "description": {
-    "description": "java.util.concurrent.TimeoutException: test() timed out after 1 millisecond",
+    "description": "java.util.concurrent.TimeoutException: test() timed out after 500 milliseconds",
     "format": "code"
   }
 }
@@ -39,7 +39,7 @@
 {
   "command": "append-message",
   "message": {
-    "description": "Caused by java.util.concurrent.TimeoutException: test() timed out after 1 millisecond",
+    "description": "Caused by java.util.concurrent.TimeoutException: test() timed out after 500 milliseconds",
     "format": "code"
   }
 }
