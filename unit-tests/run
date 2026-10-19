@@ -1,0 +1,20 @@
+#!/bin/sh
+set -e
+
+# Compiles the judge and its unit tests, then runs the tests with the bundled
+# JUnit console launcher. Run from the root of this repository.
+
+launcher="lib/junit-platform-console-standalone-6.0.2.jar"
+
+build="$(mktemp -d)"
+trap 'rm -rf "$build"' EXIT
+
+# The launcher brings JUnit itself, so it stays off the test class path.
+libraries="$(find lib -name '*.jar' ! -path "$launcher" | sort | tr '\n' ':')"
+
+find src -name '*.java' | xargs javac -nowarn -classpath 'lib/*' -d "$build/src"
+find unit-tests -name '*.java' | xargs javac -Xlint:all -Werror -classpath "lib/*:$build/src" -d "$build/tests"
+
+java -jar "$launcher" execute --disable-banner --fail-if-no-tests \
+    --class-path "$build/src:$build/tests:$libraries" \
+    --scan-class-path "$build/tests"

@@ -5,11 +5,13 @@
 # See https://github.com/dodona-edu/dodona/issues/8763
 
 /integration-tests/
+/unit-tests/
 /examples/
 /testing/
 /.github/
 /makefile
 /test.sh
+/unit-test.sh
 /flake.nix
 /flake.lock
 /.editorconfig

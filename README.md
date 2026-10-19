@@ -170,3 +170,5 @@ While developing, you can use `./test.sh` in the root of this repository to vali
 You can also use `./integration-tests/run <path-to-repo>` to run the same checks on an exercise repository, which is useful to validate a larger set of exercises. Give the path relative to the root of this repository. This runs the judge directly, so it needs the judge's environment (a Linux machine with a JDK and jq); `./test.sh` only mounts this repository.
 
 With `--overwrite`, you can overwrite previous `result.json` files with the current output, and with `-v` you can check for judge error output and view the exact changes when output differs. `./test.sh` mounts the repository read-only, so use `./integration-tests/run --overwrite` directly for that.
+
+The judge's own Java code has JUnit unit tests in `unit-tests` (mirroring the packages in `src`). Run them with `./unit-test.sh`, which runs `./unit-tests/run` in the same image; that compiles `src` and the tests and runs them with the JUnit console launcher in `lib`.

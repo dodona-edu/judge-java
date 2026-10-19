@@ -11,3 +11,16 @@ jobs:
     uses: ./.github/workflows/e2e.yml
     with:
       ref: ${{ github.sha }}
+
+  unit-test:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/dodona-edu/dodona-java:latest
+      options: --user root
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Run unit tests
+        run: ./unit-tests/run
