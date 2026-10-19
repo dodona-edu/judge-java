@@ -1,0 +1,63 @@
+{
+  "command": "start-judgement"
+}
+{
+  "command": "start-tab",
+  "hidden": true,
+  "title": "Compiler"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "start-tab",
+  "hidden": false,
+  "permission": "student",
+  "title": "HungryTest"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "eats",
+    "format": "code"
+  }
+}
+{
+  "command": "start-testcase",
+  "description": {
+    "description": "Your code ran out of memory.",
+    "format": "plain"
+  }
+}
+{
+  "command": "escalate-status",
+  "status": {
+    "enum": "memory limit exceeded",
+    "human": "Memory limit exceeded"
+  }
+}
+{
+  "accepted": false,
+  "command": "close-testcase"
+}
+{
+  "accepted": false,
+  "command": "close-context"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "passes",
+    "format": "code"
+  }
+}
+{
+  "accepted": true,
+  "command": "close-context"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "close-judgement"
+}

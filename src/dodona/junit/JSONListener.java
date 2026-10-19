@@ -115,14 +115,18 @@ public class JSONListener implements TestExecutionListener {
 
     public void abortWithOutOfMemory() {
         if (contextOpen) {
-            write(new StartTestcase(Message.plain("Your code ran out of memory.")));
-            write(new EscalateStatus(Status.MEMORY_LIMIT_EXCEEDED, "Memory limit exceeded"));
+            writeOutOfMemory();
             write(new CloseTestcase(false));
             write(new CloseContext(false));
         }
         if (tabOpen) {
             write(new CloseTab());
         }
+    }
+
+    private void writeOutOfMemory() {
+        write(new StartTestcase(Message.plain("Your code ran out of memory.")));
+        write(new EscalateStatus(Status.MEMORY_LIMIT_EXCEEDED, "Memory limit exceeded"));
     }
 
     private void handleTestFailure(TestExecutionResult result) {
@@ -137,6 +141,7 @@ public class JSONListener implements TestExecutionListener {
         switch (thrown) {
             case TestCarryingThrowable tct -> handleTestCarryingThrowable(tct);
             case SystemExitError se -> handleSystemExit(se);
+            case OutOfMemoryError oom -> writeOutOfMemory();
             case AssertionError ae -> handleAssertionError(ae);
             case Throwable t -> handleException(t);
             case null -> handleUnknownError();

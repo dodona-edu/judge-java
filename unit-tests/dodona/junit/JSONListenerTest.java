@@ -2,7 +2,6 @@ package dodona.junit;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonStreamParser;
-import dodona.KnownBug;
 import dodona.feedback.CloseTest;
 import dodona.feedback.Message;
 import dodona.feedback.StartTest;
@@ -151,8 +150,13 @@ public class JSONListenerTest {
 
     @Test
     void reportsAnOutOfMemoryErrorAsMemoryLimitExceeded() {
-        KnownBug.expectFailure("a JUnit 4 test that runs out of memory fails with OutOfMemoryError: runtime error",
-                () -> assertEquals(status("memory limit exceeded", "Memory limit exceeded"),
-                        escalation(failure(new OutOfMemoryError("Java heap space")))));
+        assertEquals(status("memory limit exceeded", "Memory limit exceeded"),
+                escalation(failure(new OutOfMemoryError("Java heap space"))));
+    }
+
+    @Test
+    void showsTheOutOfMemoryMessageAsTheTestcase() {
+        assertEquals(message("plain", "Your code ran out of memory."),
+                testcase(failure(new OutOfMemoryError("Java heap space"))));
     }
 }
