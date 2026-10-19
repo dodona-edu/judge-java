@@ -1,0 +1,45 @@
+{
+  "command": "start-judgement"
+}
+{
+  "command": "start-tab",
+  "hidden": true,
+  "title": "Compiler"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "start-tab",
+  "hidden": false,
+  "permission": "student",
+  "title": "SumTest"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "immutableListArgument()",
+    "format": "code"
+  }
+}
+{
+  "accepted": true,
+  "command": "close-context"
+}
+{
+  "command": "start-context",
+  "description": {
+    "description": "arrayListArgument()",
+    "format": "code"
+  }
+}
+{
+  "accepted": true,
+  "command": "close-context"
+}
+{
+  "command": "close-tab"
+}
+{
+  "command": "close-judgement"
+}

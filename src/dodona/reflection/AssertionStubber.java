@@ -83,8 +83,8 @@ public class AssertionStubber {
                 .filter(m -> IntStream
                     .range(0, method.getParameterCount())
                     .allMatch(i -> Assignable.check(
-                        method.getGenericParameterTypes()[i],
-                        m.getGenericParameterTypes()[i])))
+                        m.getGenericParameterTypes()[i],
+                        method.getGenericParameterTypes()[i])))
                 .findFirst();
 
             if(!solutionMethod.isPresent()) missingMethod(method);
