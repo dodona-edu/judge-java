@@ -110,6 +110,7 @@ As mentioned, test files can be pure JUnit Jupiter test files. Working examples 
 - `dodona.junit.TestDescription` sets the title of a single test. Add `@TestDescription("Some description")` to the test method. Without it, the title is the name of the test method (`testAddOne()`).
 - `dodona.junit.TabPermission` sets who can see the tab. Add `@TabPermission(Permission.EDUCATOR)` to your test class (`Permission` is `dodona.feedback.Permission`) to show the tab to educators only. Tabs are visible to students by default. `Permission.STAFF` is deprecated, use `Permission.EDUCATOR`.
 - `dodona.junit.MessageWriter` lets you write to `out` as if it were `System.out` (it's actually a `PrintWriter`, not a `PrintStream`, but they share most methods). Whatever you write to it in a test will be visible to the students if that test fails. Useful for e.g. printing the input matrices to a matrix multiplication exercise test, along with the expected and generated outputs. Declare it as a Jupiter extension with `@RegisterExtension public MessageWriter out = new MessageWriter();` (`org.junit.jupiter.api.extension.RegisterExtension`).
+- `dodona.junit.ExpectedSystemExit` checks that the code under test calls `System.exit`. Declare it as a Jupiter extension with `@RegisterExtension public ExpectedSystemExit exit = ExpectedSystemExit.none();` and call `exit.expectSystemExit()` or `exit.expectSystemExitWithStatus(3)` in a test. It replaces the `ExpectedSystemExit` of system-rules, which doesn't work on current Java, and has the same methods.
 - `dodona.junit.TestWriter` compares an expected and a received value, with `compare(expected, received)` (optionally with a description first, or with a delta for doubles). When they differ, the test fails and Dodona shows both values. Create it as a plain object, for example `private static dodona.junit.TestWriter testWriter = new dodona.junit.TestWriter();`. No extension is needed.
 - `dodona.reflection.AssertionStubber` lets your tests call the submitted class through an interface: `new AssertionStubber().stub(SomeInterface.class, Submitted.class, constructorArguments...)`. If the class, a constructor or a method is missing, not public or has the wrong types, the test fails with a message saying so.
 
@@ -136,6 +137,7 @@ The judge also runs tests written for JUnit 4 or JUnit 5.
 
 - Test classes use `org.junit.Test` and `org.junit.Assert`. Parameterized tests use the `Parameterized` runner (`@RunWith(Parameterized.class)`).
 - `MessageWriter` is a rule: `@Rule public MessageWriter out = new MessageWriter();`.
+- `ExpectedSystemExit` is a rule: `@Rule public ExpectedSystemExit exit = ExpectedSystemExit.none();`. Import `dodona.junit.ExpectedSystemExit` instead of `org.junit.contrib.java.lang.system.ExpectedSystemExit`.
 - `dodona.junit.MultiMessageWriter` is a JUnit 4 rule that collects several messages: `append(...)` adds one, `remove(...)` and `removeIf(...)` take them back. It is not a Jupiter extension.
 - Without `@TestDescription`, the title of a test is the name of the method (`testAddOne`, without the parentheses).
 
