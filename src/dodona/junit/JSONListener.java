@@ -36,6 +36,8 @@ public class JSONListener implements TestExecutionListener {
     private final PrintStream writer;
     private final Json json;
     private TestPlan testPlan;
+    private boolean tabOpen;
+    private boolean contextOpen;
 
     public JSONListener() {
         this(System.out);
@@ -88,15 +90,18 @@ public class JSONListener implements TestExecutionListener {
         final Permission permission = getTabPermission(testIdentifier)
                 .orElse(TabPermission.DEFAULT);
         write(new StartTab(title, permission));
+        tabOpen = true;
     }
 
     public void afterTab() {
         write(new CloseTab());
+        tabOpen = false;
     }
 
     public void beforeTest(TestIdentifier testIdentifier) {
         final String title = getDescription(testIdentifier);
         write(new StartContext(Message.code(title)));
+        contextOpen = true;
     }
 
     public void afterTest(TestExecutionResult result) {
@@ -104,6 +109,19 @@ public class JSONListener implements TestExecutionListener {
             write(new CloseContext(true));
         } else {
             handleTestFailure(result);
+        }
+        contextOpen = false;
+    }
+
+    public void abortWithOutOfMemory() {
+        if (contextOpen) {
+            write(new StartTestcase(Message.plain("Your code ran out of memory.")));
+            write(new EscalateStatus(Status.MEMORY_LIMIT_EXCEEDED, "Memory limit exceeded"));
+            write(new CloseTestcase(false));
+            write(new CloseContext(false));
+        }
+        if (tabOpen) {
+            write(new CloseTab());
         }
     }
 

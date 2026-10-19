@@ -15,6 +15,8 @@ import static java.lang.Thread.currentThread;
 public class JUnitJSON {
     public static final String PROPERTY_OUTPUT_CUTOFF = "dodona.output_cutoff";
 
+    private static byte[] reserve = new byte[1 << 20];
+
     public static void main(String... args) {
         Class<?> testSuite = null;
         try {
@@ -32,7 +34,21 @@ public class JUnitJSON {
                 .build();
 
         Launcher launcher = LauncherFactory.create();
-        launcher.registerTestExecutionListeners(new JSONListener());
-        launcher.execute(request);
+        JSONListener listener = new JSONListener();
+        launcher.registerTestExecutionListeners(listener);
+        try {
+            launcher.execute(request);
+        } catch (Throwable t) {
+            // Free room to write the feedback when the student's code still holds the memory
+            reserve = null;
+            // JUnit's cleanup can wrap the OutOfMemoryError in an IllegalArgumentException (self-suppression)
+            if (!(t instanceof OutOfMemoryError) && !(t.getCause() instanceof OutOfMemoryError)) {
+                throw t;
+            }
+            // JUnit Jupiter rethrows OutOfMemoryError as unrecoverable instead of reporting the test as failed
+            listener.abortWithOutOfMemory();
+            // Exit explicitly: JUnit's timeout thread is not a daemon and would keep the JVM alive
+            System.exit(0);
+        }
     }
 }

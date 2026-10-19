@@ -42,6 +42,7 @@ while IFS= read -r config; do
     filename="$(jq -r '.evaluation.filename // .filename' "$config")"
     allow_compilation_warnings="$(jq -r '.allow_compilation_warnings == true' "$config")"
     lang="$(jq -r '.natural_language // "en"' "$config")"
+    memory_limit="$(jq -r '.evaluation.memory_limit // .memory_limit // 1000000000' "$config")"
 
     # Determine submission source and result file
     submission_source="$test_dir/submission.java"
@@ -75,7 +76,7 @@ while IFS= read -r config; do
           , "allow_compilation_warnings": "'"$allow_compilation_warnings"'"
           , "filename": "'"$filename"'"
           , "time_limit": 30
-          , "memory_limit": 1000000000
+          , "memory_limit": '"$memory_limit"'
           , "source": "'"$judge/$source"'"
           }' \
           | (timeout -k 10s 60s "$judge/run" 2> "$err_out") \
