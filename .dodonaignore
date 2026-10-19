@@ -1,12 +1,13 @@
 # Paths Dodona leaves out when syncing this repository to the judge's files
 # directory, which is copied into the sandbox for every submission. Only
-# `run`, `dodona`, `config.json`, `lib/` and `src/` are read at judging time.
+# `run`, `dodona`, `config.json`, `lib/` and `dist/` are read at judging time.
 # Patterns are rsync exclude patterns, anchored to the repository root.
 # See https://github.com/dodona-edu/dodona/issues/8763
 
 /integration-tests/
 /examples/
 /testing/
+/devel/
 /.github/
 /makefile
 /test.sh
