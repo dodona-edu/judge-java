@@ -193,7 +193,7 @@ compilation_failed() {
     # Append a (failed) testcase per compilation error
     sed 's_.*/\([^/]*.java\)_\1_' "$compilation" | parse_compilation_errors "$target" "$annotate"
 
-    dodona close-tab # -b "$compile_errwarn_sum" TODO https://github.ugent.be/dodona/dodona/pull/1051
+    dodona close-tab
     dodona close-judgement -A -e 'compilation error' -h "$(printf "$human" "$described_error_count")"
     exit 0
 }
