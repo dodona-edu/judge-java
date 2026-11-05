@@ -57,11 +57,10 @@ start-tab)
 	apply jq --arg t "$title" '.title = $t'
 	;;
 start-context)
-	while getopts f:p:d: f; do
+	while getopts f:d: f; do
 		case "$f" in
 		d)  description="$OPTARG" ;;
 		f)  format="$OPTARG" ;;
-		p)  permission="$OPTARG" ;;
 		\?) exit 1 ;;
 		esac
 	done
@@ -69,18 +68,13 @@ start-context)
 		apply jq --arg d "$description" '.description.description = $d'
 		[ -z "$format" ] && crash description requires format
 		apply jq --arg f "$format" '.description.format = $f'
-		if [ -n "$permission" ]; then
-			check_permission "$permission"
-			apply jq --arg p "$permission" '.description.permission = $p'
-		fi
 	fi
 	;;
 start-testcase)
-	while getopts f:p:d: f; do
+	while getopts f:d: f; do
 		case "$f" in
 		d)  description="$OPTARG" ;;
 		f)  format="$OPTARG" ;;
-		p)  permission="$OPTARG" ;;
 		\?) exit 1 ;;
 		esac
 	done
@@ -88,32 +82,6 @@ start-testcase)
 	[ -z "$format" ] && crash testcase requires format
 	apply jq --arg d "$description" '.description.description = $d'
 	apply jq --arg f "$format" '.description.format = $f'
-	if [ -n "$permission" ]; then
-		check_permission "$permission"
-		apply jq --arg p "$permission" '.description.permission = $p'
-	fi
-	;;
-start-test)
-	while getopts e:d:f:p: f; do
-		case "$f" in
-		e)  expected="$OPTARG" ;;
-		d)  description="$OPTARG" ;;
-		f)  format="$OPTARG" ;;
-		p)  permission="$OPTARG" ;;
-		\?) exit 1 ;;
-		esac
-	done
-	[ -z "$expected" ] && crash test requires expected
-	apply jq --arg e "$expected" '.expected = $e'
-	if [ -n "$description" ]; then
-		apply jq --arg d "$description" '.description.description = $d'
-		[ -z "$format" ] && crash description requires format
-		apply jq --arg f "$format" '.description.format = $f'
-		if [ -n "$permission" ]; then
-			check_permission "$permission"
-			apply jq --arg p "$permission" '.description.permission = $p'
-		fi
-	fi
 	;;
 append-message)
 	while getopts d:f:p: f; do
@@ -134,14 +102,12 @@ append-message)
 	fi
 	;;
 annotate-code)
-	while getopts r:c:m:t:R:C: f; do
+	while getopts r:c:m:t: f; do
 		case "$f" in
 		r)  row="$OPTARG" ;;
 		c)  column="$OPTARG" ;;
 		m)  text="$OPTARG" ;;
 		t)  type="$OPTARG" ;;
-		R)  rows="$OPTARG" ;;
-		C)  columns="$OPTARG" ;;
 		\?) exit 1 ;;
 		esac
 	done
@@ -150,49 +116,22 @@ annotate-code)
 	apply jq --arg t "$text" '.text = $t'
 	[ -n "$column" ] && apply jq ".column = $column"
 	[ -n "$type" ] && check_type "$type" && apply jq --arg t "$type" '.type = $t'
-	[ -n "$rows" ] && apply jq ".rows = $rows"
-	[ -n "$columns" ] && apply jq ".columns = $columns"
-	;;
-close-test)
-	while getopts g:s:aA f; do
-		case "$f" in
-		g)  generated="$OPTARG" ;;
-		e)  enum="$OPTARG" ;;
-		h)  human="$OPTARG" ;;
-		a)  apply jq '.accepted = true' ;;
-		A)  apply jq '.accepted = false' ;;
-		\?) exit 1 ;;
-		esac
-	done
-	[ -z "$generated" -o -z "$enum" -o -z "$human" ] && crash closing test requires generated, enum and human
-	apply jq --arg g "$generated" '.generated = $g'
-	check_status "$enum"
-	apply jq --arg e "$enum" '.status.enum = $e'
-	apply jq --arg h "$human" '.status.human = $h'
 	;;
 close-testcase|close-context)
-	while getopts aA f; do
+	while getopts A f; do
 		case "$f" in
-		a)  apply jq '.accepted = true' ;;
 		A)  apply jq '.accepted = false' ;;
 		\?) exit 1 ;;
 		esac
 	done
 	;;
 close-tab)
-	while getopts b: f; do
-		case "$f" in
-		b)  apply jq ".badgeCount = $OPTARG" ;;
-		\?) exit 1 ;;
-		esac
-	done
 	;;
 close-judgement)
-	while getopts e:h:aA f; do
+	while getopts e:h:A f; do
 		case "$f" in
 		e)  enum="$OPTARG" ;;
 		h)  human="$OPTARG" ;;
-		a)  apply jq '.accepted = true' ;;
 		A)  apply jq '.accepted = false' ;;
 		\?) exit 1 ;;
 		esac
