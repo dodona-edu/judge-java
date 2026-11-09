@@ -10,12 +10,13 @@ jobs:
   integration-test:
     uses: ./.github/workflows/e2e.yml
     with:
+      image: ghcr.io/dodona-edu/dodona-java:live
       ref: ${{ github.sha }}
 
   unit-test:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/dodona-edu/dodona-java:latest
+      image: ghcr.io/dodona-edu/dodona-java:live
       options: --user root
 
     steps:

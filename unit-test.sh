@@ -5,5 +5,5 @@
 docker run --rm \
     --volume "$PWD":/judge:ro \
     --workdir /judge \
-    "${IMAGE:-ghcr.io/dodona-edu/dodona-java:latest}" \
+    "${IMAGE:-ghcr.io/dodona-edu/dodona-java:live}" \
     ./unit-tests/run
