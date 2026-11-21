@@ -27,6 +27,11 @@ memory_limit="$(( memory_limit * 9 / 10000 ))"
 allow_compilation_warnings="$(jq -r '.allow_compilation_warnings == true' "$config")"
 generated_output_cutoff="$(jq -r '.generated_output_cutoff // ""' "$config")"
 
+# Must match the javac AOT cache training flags in docker-images' dodona-java.dockerfile.
+javac_jvm="-J-XX:TieredStopAtLevel=1 -J-XX:+UseSerialGC"
+[ -f /usr/local/share/judge-java/javac.aot ] \
+    && javac_jvm="$javac_jvm -J-XX:AOTCache=/usr/local/share/judge-java/javac.aot -J-Xlog:aot*=off"
+
 ############################## [ Helper functions ] ############################
 # Import json helper functions.
 dodona() { "$judge/dodona" "$@"; }
@@ -208,7 +213,7 @@ testlibs="$(find "$judge/lib" "$resources" -name '*.jar' | xargs echo | tr ' ' '
 worklibs="$([ -d "$workdir" ] && find "$workdir" -name '*.jar' | xargs echo | tr ' ' ':')"
 
 # Compiling the workdir given code
-if ! find . -name '*.java' | xargs --no-run-if-empty javac -cp ".:${worklibs}:${testlibs}" -d . -sourcepath . > "$compilation" 2>&1; then
+if ! find . -name '*.java' | xargs --no-run-if-empty javac $javac_jvm -cp ".:${worklibs}:${testlibs}" -d . -sourcepath . > "$compilation" 2>&1; then
     compilation_failed "$compilation" "Something went wrong while compiling the base code for this exercise. Contact your teacher." "Error in base code" 'educator' 0
 fi
 
@@ -220,7 +225,7 @@ sed -i '1,5{s/^package [a-zA-Z0-9_.]*;//}' "$filename"
 
 # Compiling the user code
 [ "$allow_compilation_warnings" = 'true' ] || compile_opt='-Werror'
-if ! javac -cp ".:${worklibs}" -Xlint:all $compile_opt "$filename" > "$compilation" 2>&1; then
+if ! javac $javac_jvm -cp ".:${worklibs}" -Xlint:all $compile_opt "$filename" > "$compilation" 2>&1; then
     compilation_failed "$compilation" "Your code cannot be compiled and therefore not tested. The compiler reported %s." "%s" 'student' 1
 fi
 
@@ -230,7 +235,7 @@ public class Import {
     Class<?> userclass = ${filename%.java}.class;
 }
 HERE
-if ! javac -cp . -d "$importclass" "$importclass/Import.java" >/dev/null 2>&1; then
+if ! javac $javac_jvm -cp . -d "$importclass" "$importclass/Import.java" >/dev/null 2>&1; then
     dodona start-context -f plain -d "$(printf "Your submission does not contain a class \"%s\", so your code could not be tested." "${filename%.java}")"
     dodona close-context -A
     if grep -q '^package' "$filename"; then
@@ -247,7 +252,7 @@ find "$judge/src" -name '*.java' \
 jar -cfm "judge.jar" "$judge/src/META-INF/MANIFEST.MF" -C /tmp/build .
 
 # Compiling the tests
-if ! find "$resources" -name '*.java' | xargs javac -Xdiags:verbose -cp ".:${resources}:${worklibs}:${testlibs}:judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
+if ! find "$resources" -name '*.java' | xargs javac $javac_jvm -Xdiags:verbose -cp ".:${resources}:${worklibs}:${testlibs}:judge.jar" -d . -sourcepath "$resources" > "$compilation" 2>&1; then
     compilation_failed "$compilation" "Something went wrong while compiling the tests for this exercise." "Error in the tests" 'student' 0
 fi
 
