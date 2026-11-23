@@ -25,3 +25,12 @@ jobs:
           persist-credentials: false
       - name: Run unit tests
         run: ./unit-tests/run
+
+  judge-jar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Check dist/judge.jar matches src/
+        run: ./devel/build-jar.sh --check
